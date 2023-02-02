@@ -6,21 +6,6 @@ namespace GGroupp;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> Recover<TSuccess, TFailure>(
-        this AsyncPipeline<TSuccess, TFailure> pipeline,
-        Func<TFailure, CancellationToken, Task<Result<TSuccess, TFailure>>> otherFactoryAsync)
-        where TFailure : struct
-    {
-        ArgumentNullException.ThrowIfNull(otherFactoryAsync);
-
-        return pipeline.Pipe(InnerPipeAsync);
-
-        Task<Result<TSuccess, TFailure>> InnerPipeAsync(Result<TSuccess, TFailure> current, CancellationToken cancellationToken)
-            =>
-            current.RecoverAsync(
-                failure => otherFactoryAsync.Invoke(failure, cancellationToken));
-    }
-
     public static AsyncPipeline<TOtherSuccess, TFailure> Recover<TSuccess, TFailure, TOtherSuccess>(
         this AsyncPipeline<TSuccess, TFailure> pipeline,
         Func<TFailure, CancellationToken, Task<Result<TOtherSuccess, TFailure>>> otherFactoryAsync,
