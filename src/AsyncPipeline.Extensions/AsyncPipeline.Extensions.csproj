@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+ <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>GGroupp</RootNamespace>
+    <AssemblyName>GGroupp.Core.AsyncPipeline.Extensions</AssemblyName>
+    <Version>0.0.1</Version>
+  </PropertyGroup>
+
+ <ItemGroup>
+   <PackageReference Include="EarlyFuncPack.Core.AsyncPipeline" Version="0.2.0" />
+   <PackageReference Include="PrimeFuncPack.Core.Result" Version="2.0.2" />
+ </ItemGroup>
+
+</Project>
