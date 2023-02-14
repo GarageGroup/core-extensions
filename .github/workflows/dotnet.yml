@@ -72,13 +72,13 @@ jobs:
     - name: Pack FlatArray.Extensions
       run: dotnet pack ./src/*/*/FlatArray.Extensions.csproj --no-restore -o ~/nuget  -c Release
 
-    # FlatArray.Extensions.Tests
+    # FlatArray.Extensions.Test
 
-    - name: Restore FlatArray.Extensions.Tests
-      run: dotnet restore ./src/*/*/FlatArray.Extensions.Tests.csproj
+    - name: Restore FlatArray.Extensions.Test
+      run: dotnet restore ./src/*/*/FlatArray.Extensions.Test.csproj
 
-    - name: Test FlatArray.Extensions.Tests
-      run: dotnet test ./src/*/*/FlatArray.Extensions.Tests.csproj --no-restore  -c Release
+    - name: Test FlatArray.Extensions.Test
+      run: dotnet test ./src/*/*/FlatArray.Extensions.Test.csproj --no-restore  -c Release
 
     # Push
 
