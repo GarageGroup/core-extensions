@@ -34,13 +34,32 @@ jobs:
     # AsyncPipeline.Extensions
 
     - name: Restore AsyncPipeline.Extensions
-      run: dotnet restore ./src/*/AsyncPipeline.Extensions.csproj
+      run: dotnet restore ./src/*/*/AsyncPipeline.Extensions.csproj
 
     - name: Build AsyncPipeline.Extensions
-      run: dotnet build ./src/*/AsyncPipeline.Extensions.csproj --no-restore  -c Release
+      run: dotnet build ./src/*/*/AsyncPipeline.Extensions.csproj --no-restore  -c Release
 
     - name: Pack AsyncPipeline.Extensions
-      run: dotnet pack ./src/*/AsyncPipeline.Extensions.csproj --no-restore -o ~/nuget  -c Release
+      run: dotnet pack ./src/*/*/AsyncPipeline.Extensions.csproj --no-restore -o ~/nuget  -c Release
+
+    # String.Extensions
+
+    - name: Restore String.Extensions
+      run: dotnet restore ./src/*/*/String.Extensions.csproj
+
+    - name: Build String.Extensions
+      run: dotnet build ./src/*/*/String.Extensions.csproj --no-restore  -c Release
+
+    - name: Pack String.Extensions
+      run: dotnet pack ./src/*/*/String.Extensions.csproj --no-restore -o ~/nuget  -c Release
+
+    # String.Extensions.Test
+
+    - name: Restore String.Extensions.Test
+      run: dotnet restore ./src/*/*/String.Extensions.Test.csproj
+
+    - name: Test String.Extensions.Test
+      run: dotnet test ./src/*/*/String.Extensions.Test.csproj --no-restore  -c Release
 
     # Push
 
