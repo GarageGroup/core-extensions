@@ -1,6 +1,6 @@
 using System;
 
-namespace GGroupp;
+namespace GarageGroup;
 
 partial class FlatArrayExtensions
 {

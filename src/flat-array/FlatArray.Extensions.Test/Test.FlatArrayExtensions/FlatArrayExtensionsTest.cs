@@ -1,4 +1,4 @@
-namespace GGroupp.Core.Collections.Test;
+namespace GarageGroup.Core.Collections.Test;
 
 public sealed partial class FlatArrayExtensionsTest
 {
