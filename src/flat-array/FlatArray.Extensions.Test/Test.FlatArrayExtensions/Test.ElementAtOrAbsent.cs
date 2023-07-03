@@ -3,7 +3,7 @@ using PrimeFuncPack.UnitTest;
 using Xunit;
 using static PrimeFuncPack.UnitTest.TestData;
 
-namespace GGroupp.Core.Collections.Test;
+namespace GarageGroup.Core.Collections.Test;
 
 partial class FlatArrayExtensionsTest
 {

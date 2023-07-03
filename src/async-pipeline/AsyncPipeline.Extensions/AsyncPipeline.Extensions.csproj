@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <InvariantGlobalization>true</InvariantGlobalization>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <RootNamespace>GGroupp</RootNamespace>
-    <AssemblyName>GGroupp.Core.AsyncPipeline.Extensions</AssemblyName>
+    <RootNamespace>GarageGroup</RootNamespace>
+    <AssemblyName>GarageGroup.Core.AsyncPipeline.Extensions</AssemblyName>
     <Version>0.0.1</Version>
   </PropertyGroup>
 

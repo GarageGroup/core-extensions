@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace GGroupp.Core.String.Extensions.Test;
+namespace GarageGroup.Core.String.Extensions.Test;
 
 partial class StringExtensionsTest
 {
