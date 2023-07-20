@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,18 +31,48 @@ partial class AsyncPipelineExtensions
     {
         return pipeline.Pipe(InnerPipeAsync);
 
-        async Task<(T1, T2, T3)> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
+        Task<(T1, T2, T3)> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
+            =>
+            input.InnerPipeParallelAsync(firstPipeAsync, secondPipeAsync, thirdPipeAsync, cancellationToken);
+    }
+
+    private static async Task<(T1, T2, T3)> InnerPipeParallelAsync<TIn, T1, T2, T3>(
+        this TIn input,
+        Func<TIn, CancellationToken, Task<T1>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<T2>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<T3>> thirdPipeAsync,
+        CancellationToken cancellationToken)
+    {
+        T1 first = default!;
+        T2 second = default!;
+        T3 third = default!;
+
+        await Parallel.ForEachAsync(
+            source: Enumerable.Range(0, 3),
+            cancellationToken: cancellationToken,
+            body: InnerInvokeAsync);
+
+        return (first, second, third);
+
+        async ValueTask InnerInvokeAsync(int index, CancellationToken cancellationToken)
         {
-            var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
-            var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
-            var thirdTask = thirdPipeAsync.Invoke(input, cancellationToken);
+            switch (index)
+            {
+                case 0:
+                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                break;
 
-            await Task.WhenAll(firstTask, secondTask, thirdTask).ConfigureAwait(false);
+                case 1:
+                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                break;
 
-            return (
-                await firstTask.ConfigureAwait(false),
-                await secondTask.ConfigureAwait(false),
-                await thirdTask.ConfigureAwait(false));
+                case 2:
+                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                break;
+
+                default:
+                throw CreateIndexOutOfRangeException(index);
+            };
         }
     }
 }

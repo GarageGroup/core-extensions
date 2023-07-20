@@ -48,7 +48,7 @@ partial class AsyncPipelineExtensionsTest
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(5)]
-    public static void ForwardParallel_Array_SourceResultIsFailure_ExpectFailureValue(
+    public static async Task ForwardParallel_Array_SourceResultIsFailure_ExpectFailureValue(
         int? degreeOfParallelism)
     {
         var failure = Failure.Create("Some source failure message");
@@ -59,13 +59,12 @@ partial class AsyncPipelineExtensionsTest
             DegreeOfParallelism = degreeOfParallelism
         };
 
-        var actual = _ = source.ForwardParallel(
+        var actual = await source.ForwardParallel(
             forwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(MinusFifteenIdNullNameRecord),
-            option: option);
+            option: option)
+        .ToTask();
 
-        var expected = AsyncPipeline.Pipe<FlatArray<RecordType>, Failure<Unit>>(failure, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Theory]
@@ -74,7 +73,7 @@ partial class AsyncPipelineExtensionsTest
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(5)]
-    public static void ForwardParallel_Array_InputIsEmpty_ExpectSuccessEmptyArrayValue(
+    public static async Task ForwardParallel_Array_InputIsEmpty_ExpectSuccessEmptyArrayValue(
         int? degreeOfParallelism)
     {
         var sourceValue = default(FlatArray<RefType>);
@@ -85,12 +84,12 @@ partial class AsyncPipelineExtensionsTest
             DegreeOfParallelism = degreeOfParallelism
         };
 
-        var actual = _ = source.ForwardParallel(
+        var actual = await source.ForwardParallel(
             forwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(SomeString),
-            option: option);
+            option: option)
+        .ToTask();
 
-        var expectedValue = Result.Success<FlatArray<string>>(default).With<Failure<Unit>>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
+        var expected = default(FlatArray<string>);
 
         Assert.StrictEqual(expected, actual);
     }
@@ -101,7 +100,7 @@ partial class AsyncPipelineExtensionsTest
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(5)]
-    public static void ForwardParallel_Array_NotAllResultsAreSuccess_ExpectFailureValue(
+    public static async Task ForwardParallel_Array_NotAllResultsAreSuccess_ExpectFailureValue(
         int? degreeOfParallelism)
     {
         var failure = Failure.Create("Some failure message");
@@ -121,13 +120,12 @@ partial class AsyncPipelineExtensionsTest
             DegreeOfParallelism = degreeOfParallelism
         };
 
-        var actual = _ = source.ForwardParallel(
+        var actual = await source.ForwardParallel(
             forwardAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),
-            option: option);
+            option: option)
+        .ToTask();
 
-        var expected = AsyncPipeline.Pipe<FlatArray<RecordType?>, Failure<Unit>>(failure, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Theory]
@@ -136,7 +134,7 @@ partial class AsyncPipelineExtensionsTest
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(5)]
-    public static void ForwardParallel_Array_AllResultsAreSuccess_ExpectSuccessArrayValue(
+    public static async Task ForwardParallel_Array_AllResultsAreSuccess_ExpectSuccessArrayValue(
         int? degreeOfParallelism)
     {
         var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
@@ -153,12 +151,12 @@ partial class AsyncPipelineExtensionsTest
             DegreeOfParallelism = degreeOfParallelism
         };
 
-        var actual = _ = source.ForwardParallel(
+        var actual = await source.ForwardParallel(
             forwardAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),
-            option: option);
+            option: option)
+        .ToTask();
 
-        var expectedValue = new FlatArray<RecordType?>(MinusFifteenIdSomeStringNameRecord, null, ZeroIdNullNameRecord);
-        var expected = AsyncPipeline.Pipe<FlatArray<RecordType?>, Failure<Unit>>(expectedValue, default);
+        var expected = new FlatArray<RecordType?>(MinusFifteenIdSomeStringNameRecord, null, ZeroIdNullNameRecord);
 
         Assert.StrictEqual(expected, actual);
     }

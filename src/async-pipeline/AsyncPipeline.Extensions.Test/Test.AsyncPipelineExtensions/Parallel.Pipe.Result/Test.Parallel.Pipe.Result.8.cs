@@ -178,12 +178,12 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_FirstResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_FirstResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some first failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(failure),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -191,23 +191,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_SecondResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_SecondResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some second failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(failure),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -215,23 +211,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_ThirdResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_ThirdResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some third failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(failure),
@@ -239,23 +231,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_FourthResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_FourthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some fourth failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -263,23 +251,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_FifthResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_FifthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some fifth failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -287,23 +271,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(failure),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_SixthResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_SixthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some sixth failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -311,23 +291,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(failure),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_SeventhResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_SeventhResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some seventh failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -335,23 +311,19 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(failure),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_EighthResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Eight_EighthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some failure message");
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -359,22 +331,18 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(failure));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(failure))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure)
-            .With<(string?, StructType?, byte, DateTimeKind?, RecordType, bool, double, long?)>();
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Eight_AllResultsAreSuccess_ExpectSuccessValue()
+    public static async Task PipeParallel_Result_Eight_AllResultsAreSuccess_ExpectSuccessValue()
     {
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<string?, Failure<Unit>>>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<byte, Failure<Unit>>>(byte.MaxValue),
@@ -382,9 +350,10 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             seventhPipeAsync: (_, _) => Task.FromResult<Result<double, Failure<Unit>>>(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<Result<long?, Failure<Unit>>>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = (
+        var expected = (
             (string?)SomeString,
             (StructType?)SomeTextStructType,
             byte.MaxValue,
@@ -393,8 +362,6 @@ partial class AsyncPipelineExtensionsTest
             false,
             double.Epsilon,
             (long?)long.MinValue);
-
-        var expected = AsyncPipeline.Pipe(Result.Success(expectedValue).With<Failure<Unit>>(), default);
 
         Assert.StrictEqual(expected, actual);
     }

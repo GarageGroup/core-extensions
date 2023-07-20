@@ -8,35 +8,21 @@ partial class AsyncPipelineExtensions
 {
     public static AsyncPipeline<(T1, T2), TFailure> ForwardParallel<TIn, T1, T2, TFailure>(
         this AsyncPipeline<TIn, TFailure> pipeline,
-        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstForwardAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondForwardAsync)
         where TFailure : struct
     {
-        ArgumentNullException.ThrowIfNull(firstPipeAsync);
-        ArgumentNullException.ThrowIfNull(secondPipeAsync);
+        ArgumentNullException.ThrowIfNull(firstForwardAsync);
+        ArgumentNullException.ThrowIfNull(secondForwardAsync);
 
-        return pipeline.Forward(InnerPipeAsync);
+        return pipeline.MapSuccess(InnerForwardAsync).Forward(InnerJoinSuccess<TIn, T1, T2, TFailure>);
 
-        async Task<Result<(T1, T2), TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
-        {
-            var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
-            var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
-
-            await Task.WhenAll(firstTask, secondTask).ConfigureAwait(false);
-
-            var firstResult = await firstTask.ConfigureAwait(false);
-            if (firstResult.IsFailure)
-            {
-                return firstResult.FailureOrThrow();
-            }
-
-            var secondResult = await secondTask.ConfigureAwait(false);
-            if (secondResult.IsFailure)
-            {
-                return secondResult.FailureOrThrow();
-            }
-
-            return (firstResult.SuccessOrThrow(), secondResult.SuccessOrThrow());
-        }
+        Task<(
+            Result<T1, TFailure>,
+            Result<T2, TFailure>
+        )> InnerForwardAsync(TIn input, CancellationToken cancellationToken)
+            =>
+            input.InnerPipeParallelAsync(
+                firstForwardAsync, secondForwardAsync, cancellationToken);
     }
 }

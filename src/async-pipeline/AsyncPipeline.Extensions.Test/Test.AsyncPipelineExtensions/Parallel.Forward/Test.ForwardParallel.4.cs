@@ -10,181 +10,170 @@ namespace GarageGroup.Core.Collections.Test;
 partial class AsyncPipelineExtensionsTest
 {
     [Fact]
-    public static void ForwardParallel_Four_FirstPipeAsyncIsNull_ExpectArgumentNullException()
+    public static void ForwardParallel_Four_FirstForwardAsyncIsNull_ExpectArgumentNullException()
     {
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
         var ex = Assert.Throws<ArgumentNullException>(Test);
 
-        Assert.Equal("firstPipeAsync", ex.ParamName);
+        Assert.Equal("firstForwardAsync", ex.ParamName);
 
         void Test()
             =>
             _ = source.ForwardParallel(
-                firstPipeAsync: (Func<int?, CancellationToken, Task<Result<RecordStruct, Failure<Unit>>>>)null!,
-                secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-                thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-                fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+                firstForwardAsync: (Func<int?, CancellationToken, Task<Result<RecordStruct, Failure<Unit>>>>)null!,
+                secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+                thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+                fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
     }
 
     [Fact]
-    public static void ForwardParallel_Four_SecondPipeAsyncIsNull_ExpectArgumentNullException()
+    public static void ForwardParallel_Four_SecondForwardAsyncIsNull_ExpectArgumentNullException()
     {
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
         var ex = Assert.Throws<ArgumentNullException>(Test);
 
-        Assert.Equal("secondPipeAsync", ex.ParamName);
+        Assert.Equal("secondForwardAsync", ex.ParamName);
 
         void Test()
             =>
             _ = source.ForwardParallel(
-                firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-                secondPipeAsync: (Func<int?, CancellationToken, Task<Result<RefType?, Failure<Unit>>>>)null!,
-                thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-                fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+                firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+                secondForwardAsync: (Func<int?, CancellationToken, Task<Result<RefType?, Failure<Unit>>>>)null!,
+                thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+                fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
     }
 
     [Fact]
-    public static void ForwardParallel_Four_ThirdPipeAsyncIsNull_ExpectArgumentNullException()
+    public static void ForwardParallel_Four_ThirdForwardAsyncIsNull_ExpectArgumentNullException()
     {
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
         var ex = Assert.Throws<ArgumentNullException>(Test);
 
-        Assert.Equal("thirdPipeAsync", ex.ParamName);
+        Assert.Equal("thirdForwardAsync", ex.ParamName);
 
         void Test()
             =>
             _ = source.ForwardParallel(
-                firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-                secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-                thirdPipeAsync: (Func<int?, CancellationToken, Task<Result<RecordType, Failure<Unit>>>>)null!,
-                fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+                firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+                secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+                thirdForwardAsync: (Func<int?, CancellationToken, Task<Result<RecordType, Failure<Unit>>>>)null!,
+                fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
     }
 
     [Fact]
-    public static void ForwardParallel_Four_FourthPipeAsyncIsNull_ExpectArgumentNullException()
+    public static void ForwardParallel_Four_FourthForwardAsyncIsNull_ExpectArgumentNullException()
     {
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
         var ex = Assert.Throws<ArgumentNullException>(Test);
 
-        Assert.Equal("fourthPipeAsync", ex.ParamName);
+        Assert.Equal("fourthForwardAsync", ex.ParamName);
 
         void Test()
             =>
             _ = source.ForwardParallel(
-                firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-                secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-                thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-                fourthPipeAsync: (Func<int?, CancellationToken, Task<Result<string, Failure<Unit>>>>)null!);
+                firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+                secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+                thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+                fourthForwardAsync: (Func<int?, CancellationToken, Task<Result<string, Failure<Unit>>>>)null!);
     }
 
     [Fact]
-    public static void ForwardParallel_Four_SourceResultIsFailure_ExpectFailureValue()
+    public static async Task ForwardParallel_Four_SourceResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some source failure message");
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(failure, default);
 
-        var actual = _ = source.ForwardParallel(
-            firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-            secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-            thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-            fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+        var actual = await source.ForwardParallel(
+            firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+            secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+            thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+            fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RecordStruct, RefType?, RecordType, string)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void ForwardParallel_Four_FirstResultIsFailure_ExpectFailureValue()
+    public static async Task ForwardParallel_Four_FirstResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some first failure message");
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
 
-        var actual = _ = source.ForwardParallel(
-            firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(failure),
-            secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-            thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-            fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+        var actual = await source.ForwardParallel(
+            firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(failure),
+            secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+            thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+            fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RecordStruct, RefType?, RecordType, string)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void ForwardParallel_Four_SecondResultIsFailure_ExpectFailureValue()
+    public static async Task ForwardParallel_Four_SecondResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some second failure message");
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
 
-        var actual = _ = source.ForwardParallel(
-            firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-            secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(failure),
-            thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-            fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+        var actual = await source.ForwardParallel(
+            firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+            secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(failure),
+            thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+            fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RecordStruct, RefType?, RecordType, string)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void ForwardParallel_Four_ThirdResultIsFailure_ExpectFailureValue()
+    public static async Task ForwardParallel_Four_ThirdResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some third failure message");
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
 
-        var actual = _ = source.ForwardParallel(
-            firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-            secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-            thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(failure),
-            fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+        var actual = await source.ForwardParallel(
+            firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+            secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+            thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(failure),
+            fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RecordStruct, RefType?, RecordType, string)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void ForwardParallel_Four_FourthResultIsFailure_ExpectFailureValue()
+    public static async Task ForwardParallel_Four_FourthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some fourth failure message");
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
 
-        var actual = _ = source.ForwardParallel(
-            firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-            secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-            thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-            fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(failure));
+        var actual = await source.ForwardParallel(
+            firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+            secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+            thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+            fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(failure))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RecordStruct, RefType?, RecordType, string)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void ForwardParallel_Four_AllResultsAreSuccess_ExpectSuccessValue()
+    public static async Task ForwardParallel_Four_AllResultsAreSuccess_ExpectSuccessValue()
     {
         var source = AsyncPipeline.Pipe<int?, Failure<Unit>>(MinusFifteen, default);
 
-        var actual = _ = source.ForwardParallel(
-            firstPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
-            secondPipeAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
-            thirdPipeAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
-            fourthPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString));
+        var actual = await source.ForwardParallel(
+            firstForwardAsync: (_, _) => Task.FromResult<Result<RecordStruct, Failure<Unit>>>(SomeTextRecordStruct),
+            secondForwardAsync: (_, _) => Task.FromResult<Result<RefType?, Failure<Unit>>>(ZeroIdRefType),
+            thirdForwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(PlusFifteenIdLowerSomeStringNameRecord),
+            fourthForwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(MixedWhiteSpacesString))
+        .ToTask();
 
-        var expectedValue = (
+        var expected = (
             SomeTextRecordStruct,
             (RefType?)ZeroIdRefType,
             PlusFifteenIdLowerSomeStringNameRecord,
             MixedWhiteSpacesString);
-
-        var expected = AsyncPipeline.Pipe(Result.Success(expectedValue).With<Failure<Unit>>(), default);
 
         Assert.StrictEqual(expected, actual);
     }

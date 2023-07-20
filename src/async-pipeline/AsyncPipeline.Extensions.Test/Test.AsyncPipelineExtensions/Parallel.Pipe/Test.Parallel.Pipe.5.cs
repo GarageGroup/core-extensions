@@ -100,25 +100,24 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Fact]
-    public static void PipeParallel_Five_NonOfPipeFunctionsIsNull_ExpectTupleValue()
+    public static async Task PipeParallel_Five_NonOfPipeFunctionsIsNull_ExpectTupleValue()
     {
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult(ZeroIdRefType),
             secondPipeAsync: (_, _) => Task.FromResult(false),
             thirdPipeAsync: (_, _) => Task.FromResult(LowerSomeString),
             fourthPipeAsync: (_, _) => Task.FromResult<RecordStruct?>(SomeTextRecordStruct),
-            fifthPipeAsync: (_, _) => Task.FromResult<StructType?>(LowerSomeTextStructType));
+            fifthPipeAsync: (_, _) => Task.FromResult<StructType?>(LowerSomeTextStructType))
+        .ToTask();
 
-        var expectedValue = (
+        var expected = (
             ZeroIdRefType,
             false,
             LowerSomeString,
             (RecordStruct?)SomeTextRecordStruct,
             (StructType?)LowerSomeTextStructType);
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
 
         Assert.StrictEqual(expected, actual);
     }

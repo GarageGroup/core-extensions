@@ -17,38 +17,38 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
         ArgumentNullException.ThrowIfNull(thirdPipeAsync);
 
-        return pipeline
-            .InnerPipeParallel(
-                firstPipeAsync, secondPipeAsync, thirdPipeAsync)
-            .Pipe(
-                InnerFold);
+        return pipeline.InnerPipeParallel(
+            firstPipeAsync, secondPipeAsync, thirdPipeAsync)
+        .Pipe(
+            InnerJoinSuccess<TIn, T1, T2, T3, TFailure>);
+    }
 
-        static Result<(T1, T2, T3), TFailure> InnerFold(
-            (
-                Result<T1, TFailure> First,
-                Result<T2, TFailure> Second,
-                Result<T3, TFailure> Third
-            ) result)
+    private static Result<(T1, T2, T3), TFailure> InnerJoinSuccess<TIn, T1, T2, T3, TFailure>(
+        (
+            Result<T1, TFailure> First,
+            Result<T2, TFailure> Second,
+            Result<T3, TFailure> Third
+        ) result)
+    where TFailure : struct
+    {
+        if (result.First.IsFailure)
         {
-            if (result.First.IsFailure)
-            {
-                return result.First.FailureOrThrow();
-            }
-
-            if (result.Second.IsFailure)
-            {
-                return result.Second.FailureOrThrow();
-            }
-
-            if (result.Third.IsFailure)
-            {
-                return result.Third.FailureOrThrow();
-            }
-
-            return (
-                result.First.SuccessOrThrow(),
-                result.Second.SuccessOrThrow(),
-                result.Third.SuccessOrThrow());
+            return result.First.FailureOrThrow();
         }
+
+        if (result.Second.IsFailure)
+        {
+            return result.Second.FailureOrThrow();
+        }
+
+        if (result.Third.IsFailure)
+        {
+            return result.Third.FailureOrThrow();
+        }
+
+        return (
+            result.First.SuccessOrThrow(),
+            result.Second.SuccessOrThrow(),
+            result.Third.SuccessOrThrow());
     }
 }

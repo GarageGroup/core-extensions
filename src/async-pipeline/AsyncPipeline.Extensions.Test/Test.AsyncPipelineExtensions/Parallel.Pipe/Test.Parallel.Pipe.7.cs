@@ -150,20 +150,21 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Fact]
-    public static void PipeParallel_Seven_NonOfPipeFunctionsIsNull_ExpectTupleValue()
+    public static async Task PipeParallel_Seven_NonOfPipeFunctionsIsNull_ExpectTupleValue()
     {
         var source = AsyncPipeline.Pipe(SomeTextRecordStruct, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult(decimal.One),
             secondPipeAsync: (_, _) => Task.FromResult<RefType?>(MinusFifteenIdRefType),
             thirdPipeAsync: (_, _) => Task.FromResult(AnotherString),
             fourthPipeAsync: (_, _) => Task.FromResult(new DateOnly(2021, 01, 15)),
             fifthPipeAsync: (_, _) => Task.FromResult<bool?>(true),
             sixthPipeAsync: (_, _) => Task.FromResult(LowerSomeTextStructType),
-            seventhPipeAsync: (_, _) => Task.FromResult(Array.Empty<long?>()));
+            seventhPipeAsync: (_, _) => Task.FromResult(Array.Empty<long?>()))
+        .ToTask();
 
-        var expectedValue = (
+        var expected = (
             decimal.One,
             (RefType?)MinusFifteenIdRefType,
             AnotherString,
@@ -171,8 +172,6 @@ partial class AsyncPipelineExtensionsTest
             (bool?)true,
             LowerSomeTextStructType,
             Array.Empty<long?>());
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
 
         Assert.StrictEqual(expected, actual);
     }

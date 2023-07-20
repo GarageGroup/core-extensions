@@ -19,45 +19,45 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(thirdPipeAsync);
         ArgumentNullException.ThrowIfNull(fourthPipeAsync);
 
-        return pipeline
-            .InnerPipeParallel(
-                firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync)
-            .Pipe(
-                InnerFold);
+        return pipeline.InnerPipeParallel(
+            firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync)
+        .Pipe(
+            InnerJoinSuccess<TIn, T1, T2, T3, T4, TFailure>);
+    }
 
-        static Result<(T1, T2, T3, T4), TFailure> InnerFold(
-            (
-                Result<T1, TFailure> First,
-                Result<T2, TFailure> Second,
-                Result<T3, TFailure> Third,
-                Result<T4, TFailure> Fourth
-            ) result)
+    private static Result<(T1, T2, T3, T4), TFailure> InnerJoinSuccess<TIn, T1, T2, T3, T4, TFailure>(
+        (
+            Result<T1, TFailure> First,
+            Result<T2, TFailure> Second,
+            Result<T3, TFailure> Third,
+            Result<T4, TFailure> Fourth
+        ) result)
+    where TFailure : struct
+    {
+        if (result.First.IsFailure)
         {
-            if (result.First.IsFailure)
-            {
-                return result.First.FailureOrThrow();
-            }
-
-            if (result.Second.IsFailure)
-            {
-                return result.Second.FailureOrThrow();
-            }
-
-            if (result.Third.IsFailure)
-            {
-                return result.Third.FailureOrThrow();
-            }
-
-            if (result.Fourth.IsFailure)
-            {
-                return result.Fourth.FailureOrThrow();
-            }
-
-            return (
-                result.First.SuccessOrThrow(),
-                result.Second.SuccessOrThrow(),
-                result.Third.SuccessOrThrow(),
-                result.Fourth.SuccessOrThrow());
+            return result.First.FailureOrThrow();
         }
+
+        if (result.Second.IsFailure)
+        {
+            return result.Second.FailureOrThrow();
+        }
+
+        if (result.Third.IsFailure)
+        {
+            return result.Third.FailureOrThrow();
+        }
+
+        if (result.Fourth.IsFailure)
+        {
+            return result.Fourth.FailureOrThrow();
+        }
+
+        return (
+            result.First.SuccessOrThrow(),
+            result.Second.SuccessOrThrow(),
+            result.Third.SuccessOrThrow(),
+            result.Fourth.SuccessOrThrow());
     }
 }

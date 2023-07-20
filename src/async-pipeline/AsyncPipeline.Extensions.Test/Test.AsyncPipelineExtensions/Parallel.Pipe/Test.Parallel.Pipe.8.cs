@@ -178,11 +178,11 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Fact]
-    public static void PipeParallel_Eight_NonOfPipeFunctionsIsNull_ExpectTupleValue()
+    public static async Task PipeParallel_Eight_NonOfPipeFunctionsIsNull_ExpectTupleValue()
     {
         var source = AsyncPipeline.Pipe(PlusFifteenIdRefType, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<string?>(SomeString),
             secondPipeAsync: (_, _) => Task.FromResult(SomeTextStructType),
             thirdPipeAsync: (_, _) => Task.FromResult(byte.MaxValue),
@@ -190,9 +190,10 @@ partial class AsyncPipelineExtensionsTest
             fifthPipeAsync: (_, _) => Task.FromResult(PlusFifteenIdLowerSomeStringNameRecord),
             sixthPipeAsync: (_, _) => Task.FromResult(false),
             seventhPipeAsync: (_, _) => Task.FromResult(double.Epsilon),
-            eighthPipeAsync: (_, _) => Task.FromResult<long?>(long.MinValue));
+            eighthPipeAsync: (_, _) => Task.FromResult<long?>(long.MinValue))
+        .ToTask();
 
-        var expectedValue = (
+        var expected = (
             (string?)SomeString,
             SomeTextStructType,
             byte.MaxValue,
@@ -201,8 +202,6 @@ partial class AsyncPipelineExtensionsTest
             false,
             double.Epsilon,
             (long?)long.MinValue);
-
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
 
         Assert.StrictEqual(expected, actual);
     }

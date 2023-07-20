@@ -100,120 +100,109 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Fact]
-    public static void PipeParallel_Result_Five_FirstResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Five_FirstResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some first failure message");
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<RefType, Failure<Unit>>>(failure),
             secondPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(LowerSomeString),
             fourthPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct?, Failure<Unit>>>(SomeTextRecordStruct),
-            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType));
+            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RefType, bool, string, RecordStruct?, StructType?)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Five_SecondResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Five_SecondResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some second failure message");
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<RefType, Failure<Unit>>>(ZeroIdRefType),
             secondPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(failure),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(LowerSomeString),
             fourthPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct?, Failure<Unit>>>(SomeTextRecordStruct),
-            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType));
+            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RefType, bool, string, RecordStruct?, StructType?)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Five_ThirdResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Five_ThirdResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some third failure message");
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<RefType, Failure<Unit>>>(ZeroIdRefType),
             secondPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(failure),
             fourthPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct?, Failure<Unit>>>(SomeTextRecordStruct),
-            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType));
+            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RefType, bool, string, RecordStruct?, StructType?)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Five_FourthResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Five_FourthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some fourth failure message");
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<RefType, Failure<Unit>>>(ZeroIdRefType),
             secondPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(LowerSomeString),
             fourthPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct?, Failure<Unit>>>(failure),
-            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType));
+            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RefType, bool, string, RecordStruct?, StructType?)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Five_FifthResultIsFailure_ExpectFailureValue()
+    public static async Task PipeParallel_Result_Five_FifthResultIsFailure_ExpectFailureValue()
     {
         var failure = Failure.Create("Some fifth failure message");
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<RefType, Failure<Unit>>>(ZeroIdRefType),
             secondPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(LowerSomeString),
             fourthPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct?, Failure<Unit>>>(SomeTextRecordStruct),
-            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(failure));
+            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(failure))
+        .ToTask();
 
-        var expectedValue = Result.Failure(failure).With<(RefType, bool, string, RecordStruct?, StructType?)>();
-        var expected = AsyncPipeline.Pipe(expectedValue, default);
-
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(failure, actual);
     }
 
     [Fact]
-    public static void PipeParallel_Result_Five_AllResultsAreSuccess_ExpectSuccessValue()
+    public static async Task PipeParallel_Result_Five_AllResultsAreSuccess_ExpectSuccessValue()
     {
         var source = AsyncPipeline.Pipe(MinusFifteenIdNullNameRecord, default);
 
-        var actual = _ = source.PipeParallel(
+        var actual = await source.PipeParallel(
             firstPipeAsync: (_, _) => Task.FromResult<Result<RefType, Failure<Unit>>>(ZeroIdRefType),
             secondPipeAsync: (_, _) => Task.FromResult<Result<bool, Failure<Unit>>>(false),
             thirdPipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(LowerSomeString),
             fourthPipeAsync: (_, _) => Task.FromResult<Result<RecordStruct?, Failure<Unit>>>(SomeTextRecordStruct),
-            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType));
+            fifthPipeAsync: (_, _) => Task.FromResult<Result<StructType?, Failure<Unit>>>(LowerSomeTextStructType))
+        .ToTask();
 
-        var expectedValue = (
+        var expected = (
             ZeroIdRefType,
             false,
             LowerSomeString,
             (RecordStruct?)SomeTextRecordStruct,
             (StructType?)LowerSomeTextStructType);
-
-        var expected = AsyncPipeline.Pipe(Result.Success(expectedValue).With<Failure<Unit>>(), default);
 
         Assert.StrictEqual(expected, actual);
     }

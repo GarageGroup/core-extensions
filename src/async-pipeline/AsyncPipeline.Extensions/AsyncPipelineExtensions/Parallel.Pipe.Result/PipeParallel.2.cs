@@ -15,31 +15,31 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
 
-        return pipeline
-            .InnerPipeParallel(
-                firstPipeAsync, secondPipeAsync)
-            .Pipe(
-                InnerFold);
+        return pipeline.InnerPipeParallel(
+            firstPipeAsync, secondPipeAsync)
+        .Pipe(
+            InnerJoinSuccess<TIn, T1, T2, TFailure>);
+    }
 
-        static Result<(T1, T2), TFailure> InnerFold(
-            (
-                Result<T1, TFailure> First,
-                Result<T2, TFailure> Second
-            ) result)
+    private static Result<(T1, T2), TFailure> InnerJoinSuccess<TIn, T1, T2, TFailure>(
+        (
+            Result<T1, TFailure> First,
+            Result<T2, TFailure> Second
+        ) result)
+    where TFailure : struct
+    {
+        if (result.First.IsFailure)
         {
-            if (result.First.IsFailure)
-            {
-                return result.First.FailureOrThrow();
-            }
-
-            if (result.Second.IsFailure)
-            {
-                return result.Second.FailureOrThrow();
-            }
-
-            return (
-                result.First.SuccessOrThrow(),
-                result.Second.SuccessOrThrow());
+            return result.First.FailureOrThrow();
         }
+
+        if (result.Second.IsFailure)
+        {
+            return result.Second.FailureOrThrow();
+        }
+
+        return (
+            result.First.SuccessOrThrow(),
+            result.Second.SuccessOrThrow());
     }
 }

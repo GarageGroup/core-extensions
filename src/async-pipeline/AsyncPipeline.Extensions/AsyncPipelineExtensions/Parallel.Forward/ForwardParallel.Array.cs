@@ -14,9 +14,9 @@ partial class AsyncPipelineExtensions
     {
         ArgumentNullException.ThrowIfNull(forwardAsync);
 
-        return pipeline.ForwardValue(InnerForwardAsync);
+        return pipeline.MapSuccessValue(InnerForwardAsync).Forward(InnerJoinSuccess<TIn, TOut, TFailure>);
 
-        ValueTask<Result<FlatArray<TOut>, TFailure>> InnerForwardAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
+        ValueTask<FlatArray<Result<TOut, TFailure>>> InnerForwardAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
             =>
             input.InnerPipeParallelAsync(forwardAsync, option, cancellationToken);
     }

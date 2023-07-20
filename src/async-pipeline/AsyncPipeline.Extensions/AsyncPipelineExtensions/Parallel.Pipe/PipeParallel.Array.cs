@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,40 +33,34 @@ partial class AsyncPipelineExtensions
             return default;
         }
 
-        if (option.DegreeOfParallelism is not > 0)
+        var items = new ConcurrentBag<(int Index, TOut Value)>();
+
+        var parallelOptions = new ParallelOptions
         {
-            return await Task.WhenAll(input.AsEnumerable().Select(InnerPipeAsync)).ConfigureAwait(false);
+            CancellationToken = cancellationToken
+        };
+
+        if (option.DegreeOfParallelism > 0)
+        {
+            parallelOptions.MaxDegreeOfParallelism = option.DegreeOfParallelism.Value;
         }
 
-        var builder = FlatArray<TOut>.Builder.OfLength(input.Length);
+        await Parallel.ForEachAsync(Enumerable.Range(0, input.Length), parallelOptions, InnerInvokeAsync).ConfigureAwait(false);
 
-        if (option.DegreeOfParallelism is 1)
+        return items.OrderBy(GetIndex).Select(GetValue).ToFlatArray();
+
+        async ValueTask InnerInvokeAsync(int index, CancellationToken cancellationToken)
         {
-            for (var i = 0; i < input.Length; i++)
-            {
-                builder[i] = await pipeAsync.Invoke(input[i], cancellationToken).ConfigureAwait(false);
-            }
-
-            return builder.MoveToFlatArray();
+            var value = await pipeAsync.Invoke(input[index], cancellationToken).ConfigureAwait(false);
+            items.Add((index, value));
         }
 
-        var index = 0;
-
-        foreach (var chunk in input.ToArray().SplitIntoChunks(option.DegreeOfParallelism.Value))
-        {
-            var items = await Task.WhenAll(chunk.Select(InnerPipeAsync)).ConfigureAwait(false);
-
-            foreach (var item in items)
-            {
-                builder[index] = item;
-                index++;
-            }
-        }
-
-        return builder.MoveToFlatArray();
-
-        Task<TOut> InnerPipeAsync(TIn @in)
+        static int GetIndex((int Index, TOut) item)
             =>
-            pipeAsync.Invoke(@in, cancellationToken);
+            item.Index;
+
+        static TOut GetValue((int, TOut Value) item)
+            =>
+            item.Value;
     }
 }
