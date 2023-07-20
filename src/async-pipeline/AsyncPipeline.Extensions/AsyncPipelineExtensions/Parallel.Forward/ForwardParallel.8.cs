@@ -6,17 +6,16 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> ForwardParallel<TIn, TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TOut7, TOut8, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3, T4, T5, T6, T7, T8), TFailure> ForwardParallel<TIn, T1, T2, T3, T4, T5, T6, T7, T8, TFailure>(
         this AsyncPipeline<TIn, TFailure> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut4, TFailure>>> fourthPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut5, TFailure>>> fifthPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut6, TFailure>>> sixthPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut7, TFailure>>> seventhPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut8, TFailure>>> eigthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TOut7, TOut8, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T4, TFailure>>> fourthPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T5, TFailure>>> fifthPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T6, TFailure>>> sixthPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T7, TFailure>>> seventhPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T8, TFailure>>> eighthPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
@@ -26,12 +25,11 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(fifthPipeAsync);
         ArgumentNullException.ThrowIfNull(sixthPipeAsync);
         ArgumentNullException.ThrowIfNull(seventhPipeAsync);
-        ArgumentNullException.ThrowIfNull(eigthPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
+        ArgumentNullException.ThrowIfNull(eighthPipeAsync);
 
         return pipeline.Forward(InnerPipeAsync);
 
-        async Task<Result<TSuccess, TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
+        async Task<Result<(T1, T2, T3, T4, T5, T6, T7, T8), TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
         {
             var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
             var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
@@ -40,59 +38,59 @@ partial class AsyncPipelineExtensions
             var fifthTask = fifthPipeAsync.Invoke(input, cancellationToken);
             var sixthTask = sixthPipeAsync.Invoke(input, cancellationToken);
             var seventhTask = seventhPipeAsync.Invoke(input, cancellationToken);
-            var eigthTask = eigthPipeAsync.Invoke(input, cancellationToken);
+            var eighthTask = eighthPipeAsync.Invoke(input, cancellationToken);
 
-            await Task.WhenAll(firstTask, secondTask, thirdTask, fourthTask, fifthTask, sixthTask, seventhTask, eigthTask).ConfigureAwait(false);
+            await Task.WhenAll(firstTask, secondTask, thirdTask, fourthTask, fifthTask, sixthTask, seventhTask, eighthTask).ConfigureAwait(false);
 
-            var firstResult = firstTask.Result;
+            var firstResult = await firstTask.ConfigureAwait(false);
             if (firstResult.IsFailure)
             {
                 return firstResult.FailureOrThrow();
             }
 
-            var secondResult = secondTask.Result;
+            var secondResult = await secondTask.ConfigureAwait(false);
             if (secondResult.IsFailure)
             {
                 return secondResult.FailureOrThrow();
             }
 
-            var thirdResult = thirdTask.Result;
+            var thirdResult = await thirdTask.ConfigureAwait(false);
             if (thirdResult.IsFailure)
             {
                 return thirdResult.FailureOrThrow();
             }
 
-            var fourthResult = fourthTask.Result;
+            var fourthResult = await fourthTask.ConfigureAwait(false);
             if (fourthResult.IsFailure)
             {
                 return fourthResult.FailureOrThrow();
             }
 
-            var fifthResult = fifthTask.Result;
+            var fifthResult = await fifthTask.ConfigureAwait(false);
             if (fifthResult.IsFailure)
             {
                 return fifthResult.FailureOrThrow();
             }
 
-            var sixthResult = sixthTask.Result;
+            var sixthResult = await sixthTask.ConfigureAwait(false);
             if (sixthResult.IsFailure)
             {
                 return sixthResult.FailureOrThrow();
             }
 
-            var seventhResult = seventhTask.Result;
+            var seventhResult = await seventhTask.ConfigureAwait(false);
             if (seventhResult.IsFailure)
             {
                 return seventhResult.FailureOrThrow();
             }
 
-            var eigthResult = eigthTask.Result;
-            if (eigthResult.IsFailure)
+            var eighthResult = await eighthTask.ConfigureAwait(false);
+            if (eighthResult.IsFailure)
             {
-                return eigthResult.FailureOrThrow();
+                return eighthResult.FailureOrThrow();
             }
 
-            return fold.Invoke(
+            return (
                 firstResult.SuccessOrThrow(),
                 secondResult.SuccessOrThrow(),
                 thirdResult.SuccessOrThrow(),
@@ -100,7 +98,7 @@ partial class AsyncPipelineExtensions
                 fifthResult.SuccessOrThrow(),
                 sixthResult.SuccessOrThrow(),
                 seventhResult.SuccessOrThrow(),
-                eigthResult.SuccessOrThrow());
+                eighthResult.SuccessOrThrow());
         }
     }
 }

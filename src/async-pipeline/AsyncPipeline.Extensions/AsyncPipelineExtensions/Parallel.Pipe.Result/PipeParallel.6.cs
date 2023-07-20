@@ -6,15 +6,14 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> PipeParallel<TIn, TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3, T4, T5, T6), TFailure> PipeParallel<TIn, T1, T2, T3, T4, T5, T6, TFailure>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut4, TFailure>>> fourthPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut5, TFailure>>> fifthPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut6, TFailure>>> sixthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T4, TFailure>>> fourthPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T5, TFailure>>> fifthPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T6, TFailure>>> sixthPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
@@ -23,58 +22,60 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(fourthPipeAsync);
         ArgumentNullException.ThrowIfNull(fifthPipeAsync);
         ArgumentNullException.ThrowIfNull(sixthPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
 
         return pipeline
             .InnerPipeParallel(
-                firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync, fifthPipeAsync, sixthPipeAsync, InnerFold)
-            .Pipe(InnerPipe);
+                firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync, fifthPipeAsync, sixthPipeAsync)
+            .Pipe(
+                InnerFold);
 
-        Result<TSuccess, TFailure> InnerFold(
-            Result<TOut1, TFailure> firstResult,
-            Result<TOut2, TFailure> secondResult,
-            Result<TOut3, TFailure> thirdResult,
-            Result<TOut4, TFailure> fourthResult,
-            Result<TOut5, TFailure> fifthResult,
-            Result<TOut6, TFailure> sixthResult)
+        static Result<(T1, T2, T3, T4, T5, T6), TFailure> InnerFold(
+            (
+                Result<T1, TFailure> First,
+                Result<T2, TFailure> Second,
+                Result<T3, TFailure> Third,
+                Result<T4, TFailure> Fourth,
+                Result<T5, TFailure> Fifth,
+                Result<T6, TFailure> Sixth
+            ) result)
         {
-            if (firstResult.IsFailure)
+            if (result.First.IsFailure)
             {
-                return firstResult.FailureOrThrow();
+                return result.First.FailureOrThrow();
             }
 
-            if (secondResult.IsFailure)
+            if (result.Second.IsFailure)
             {
-                return secondResult.FailureOrThrow();
+                return result.Second.FailureOrThrow();
             }
 
-            if (thirdResult.IsFailure)
+            if (result.Third.IsFailure)
             {
-                return thirdResult.FailureOrThrow();
+                return result.Third.FailureOrThrow();
             }
 
-            if (fourthResult.IsFailure)
+            if (result.Fourth.IsFailure)
             {
-                return fourthResult.FailureOrThrow();
+                return result.Fourth.FailureOrThrow();
             }
 
-            if (fifthResult.IsFailure)
+            if (result.Fifth.IsFailure)
             {
-                return fifthResult.FailureOrThrow();
+                return result.Fifth.FailureOrThrow();
             }
 
-            if (sixthResult.IsFailure)
+            if (result.Sixth.IsFailure)
             {
-                return sixthResult.FailureOrThrow();
+                return result.Sixth.FailureOrThrow();
             }
 
-            return fold.Invoke(
-                firstResult.SuccessOrThrow(),
-                secondResult.SuccessOrThrow(),
-                thirdResult.SuccessOrThrow(),
-                fourthResult.SuccessOrThrow(),
-                fifthResult.SuccessOrThrow(),
-                sixthResult.SuccessOrThrow());
+            return (
+                result.First.SuccessOrThrow(),
+                result.Second.SuccessOrThrow(),
+                result.Third.SuccessOrThrow(),
+                result.Fourth.SuccessOrThrow(),
+                result.Fifth.SuccessOrThrow(),
+                result.Sixth.SuccessOrThrow());
         }
     }
 }

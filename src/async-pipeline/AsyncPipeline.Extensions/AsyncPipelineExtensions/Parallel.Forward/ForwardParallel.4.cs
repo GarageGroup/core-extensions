@@ -6,24 +6,22 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> ForwardParallel<TIn, TOut1, TOut2, TOut3, TOut4, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3, T4), TFailure> ForwardParallel<TIn, T1, T2, T3, T4, TFailure>(
         this AsyncPipeline<TIn, TFailure> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut4, TFailure>>> fourthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T4, TFailure>>> fourthPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
         ArgumentNullException.ThrowIfNull(thirdPipeAsync);
         ArgumentNullException.ThrowIfNull(fourthPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
 
         return pipeline.Forward(InnerPipeAsync);
 
-        async Task<Result<TSuccess, TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
+        async Task<Result<(T1, T2, T3, T4), TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
         {
             var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
             var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
@@ -32,31 +30,31 @@ partial class AsyncPipelineExtensions
 
             await Task.WhenAll(firstTask, secondTask, thirdTask, fourthTask).ConfigureAwait(false);
 
-            var firstResult = firstTask.Result;
+            var firstResult = await firstTask.ConfigureAwait(false);
             if (firstResult.IsFailure)
             {
                 return firstResult.FailureOrThrow();
             }
 
-            var secondResult = secondTask.Result;
+            var secondResult = await secondTask.ConfigureAwait(false);
             if (secondResult.IsFailure)
             {
                 return secondResult.FailureOrThrow();
             }
 
-            var thirdResult = thirdTask.Result;
+            var thirdResult = await thirdTask.ConfigureAwait(false);
             if (thirdResult.IsFailure)
             {
                 return thirdResult.FailureOrThrow();
             }
 
-            var fourthResult = fourthTask.Result;
+            var fourthResult = await fourthTask.ConfigureAwait(false);
             if (fourthResult.IsFailure)
             {
                 return fourthResult.FailureOrThrow();
             }
 
-            return fold.Invoke(
+            return (
                 firstResult.SuccessOrThrow(),
                 secondResult.SuccessOrThrow(),
                 thirdResult.SuccessOrThrow(),

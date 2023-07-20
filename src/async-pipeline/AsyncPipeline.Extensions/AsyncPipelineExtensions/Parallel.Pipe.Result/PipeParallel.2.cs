@@ -6,32 +6,40 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> PipeParallel<TIn, TOut1, TOut2, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2), TFailure> PipeParallel<TIn, T1, T2, TFailure>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TOut1, TOut2, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
 
-        return pipeline.InnerPipeParallel(firstPipeAsync, secondPipeAsync, InnerFold).Pipe(InnerPipe);
+        return pipeline
+            .InnerPipeParallel(
+                firstPipeAsync, secondPipeAsync)
+            .Pipe(
+                InnerFold);
 
-        Result<TSuccess, TFailure> InnerFold(Result<TOut1, TFailure> firstResult, Result<TOut2, TFailure> secondResult)
+        static Result<(T1, T2), TFailure> InnerFold(
+            (
+                Result<T1, TFailure> First,
+                Result<T2, TFailure> Second
+            ) result)
         {
-            if (firstResult.IsFailure)
+            if (result.First.IsFailure)
             {
-                return firstResult.FailureOrThrow();
+                return result.First.FailureOrThrow();
             }
 
-            if (secondResult.IsFailure)
+            if (result.Second.IsFailure)
             {
-                return secondResult.FailureOrThrow();
+                return result.Second.FailureOrThrow();
             }
 
-            return fold.Invoke(firstResult.SuccessOrThrow(), secondResult.SuccessOrThrow());
+            return (
+                result.First.SuccessOrThrow(),
+                result.Second.SuccessOrThrow());
         }
     }
 }

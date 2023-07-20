@@ -6,17 +6,16 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TNext> PipeParallel<TIn, TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TOut7, TOut8, TNext>(
+    public static AsyncPipeline<(T1, T2, T3, T4, T5, T6, T7, T8)> PipeParallel<TIn, T1, T2, T3, T4, T5, T6, T7, T8>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<TOut1>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut2>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut3>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut4>> fourthPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut5>> fifthPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut6>> sixthPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut7>> seventhPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut8>> eigthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TOut7, TOut8, TNext> fold)
+        Func<TIn, CancellationToken, Task<T1>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<T2>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<T3>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<T4>> fourthPipeAsync,
+        Func<TIn, CancellationToken, Task<T5>> fifthPipeAsync,
+        Func<TIn, CancellationToken, Task<T6>> sixthPipeAsync,
+        Func<TIn, CancellationToken, Task<T7>> seventhPipeAsync,
+        Func<TIn, CancellationToken, Task<T8>> eighthPipeAsync)
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
@@ -25,8 +24,7 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(fifthPipeAsync);
         ArgumentNullException.ThrowIfNull(sixthPipeAsync);
         ArgumentNullException.ThrowIfNull(seventhPipeAsync);
-        ArgumentNullException.ThrowIfNull(eigthPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
+        ArgumentNullException.ThrowIfNull(eighthPipeAsync);
 
         return pipeline.InnerPipeParallel(
             firstPipeAsync,
@@ -36,25 +34,23 @@ partial class AsyncPipelineExtensions
             fifthPipeAsync,
             sixthPipeAsync,
             seventhPipeAsync,
-            eigthPipeAsync,
-            fold);
+            eighthPipeAsync);
     }
 
-    private static AsyncPipeline<TNext> InnerPipeParallel<TIn, TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TOut7, TOut8, TNext>(
+    private static AsyncPipeline<(T1, T2, T3, T4, T5, T6, T7, T8)> InnerPipeParallel<TIn, T1, T2, T3, T4, T5, T6, T7, T8>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<TOut1>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut2>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut3>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut4>> fourthPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut5>> fifthPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut6>> sixthPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut7>> seventhPipeAsync,
-        Func<TIn, CancellationToken, Task<TOut8>> eigthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TOut5, TOut6, TOut7, TOut8, TNext> fold)
+        Func<TIn, CancellationToken, Task<T1>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<T2>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<T3>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<T4>> fourthPipeAsync,
+        Func<TIn, CancellationToken, Task<T5>> fifthPipeAsync,
+        Func<TIn, CancellationToken, Task<T6>> sixthPipeAsync,
+        Func<TIn, CancellationToken, Task<T7>> seventhPipeAsync,
+        Func<TIn, CancellationToken, Task<T8>> eighthPipeAsync)
     {
         return pipeline.Pipe(InnerPipeAsync);
 
-        async Task<TNext> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
+        async Task<(T1, T2, T3, T4, T5, T6, T7, T8)> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
         {
             var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
             var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
@@ -63,19 +59,19 @@ partial class AsyncPipelineExtensions
             var fifthTask = fifthPipeAsync.Invoke(input, cancellationToken);
             var sixthTask = sixthPipeAsync.Invoke(input, cancellationToken);
             var seventhTask = seventhPipeAsync.Invoke(input, cancellationToken);
-            var eigthTask = eigthPipeAsync.Invoke(input, cancellationToken);
+            var eighthTask = eighthPipeAsync.Invoke(input, cancellationToken);
 
-            await Task.WhenAll(firstTask, secondTask, thirdTask, fourthTask, fifthTask, sixthTask, seventhTask, eigthTask).ConfigureAwait(false);
+            await Task.WhenAll(firstTask, secondTask, thirdTask, fourthTask, fifthTask, sixthTask, seventhTask, eighthTask).ConfigureAwait(false);
 
-            return fold.Invoke(
-                firstTask.Result,
-                secondTask.Result,
-                thirdTask.Result,
-                fourthTask.Result,
-                fifthTask.Result,
-                sixthTask.Result,
-                seventhTask.Result,
-                eigthTask.Result);
+            return (
+                await firstTask.ConfigureAwait(false),
+                await secondTask.ConfigureAwait(false),
+                await thirdTask.ConfigureAwait(false),
+                await fourthTask.ConfigureAwait(false),
+                await fifthTask.ConfigureAwait(false),
+                await sixthTask.ConfigureAwait(false),
+                await seventhTask.ConfigureAwait(false),
+                await eighthTask.ConfigureAwait(false));
         }
     }
 }
