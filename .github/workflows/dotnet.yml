@@ -23,7 +23,7 @@ jobs:
     - name: Add Local Nuget Source
       run: dotnet nuget add source ~/nuget
 
-    - name: Add GGroupp NuGet Source
+    - name: Add GarageGroup NuGet Source
       run: >
         dotnet nuget add source ${{ secrets.GG_NUGET_SOURCE_URL }}
         -n garage
@@ -41,6 +41,14 @@ jobs:
 
     - name: Pack AsyncPipeline.Extensions
       run: dotnet pack ./src/*/*/AsyncPipeline.Extensions.csproj --no-restore -o ~/nuget  -c Release
+
+    # AsyncPipeline.Extensions.Test
+
+    - name: Restore AsyncPipeline.Extensions.Test
+      run: dotnet restore ./src/*/*/AsyncPipeline.Extensions.Test.csproj
+
+    - name: Test AsyncPipeline.Extensions.Test
+      run: dotnet test ./src/*/*/AsyncPipeline.Extensions.Test.csproj --no-restore  -c Release
 
     # String.Extensions
 

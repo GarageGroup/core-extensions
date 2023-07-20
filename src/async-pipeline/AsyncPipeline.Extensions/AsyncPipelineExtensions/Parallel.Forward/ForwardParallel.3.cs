@@ -6,48 +6,26 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> ForwardParallel<TIn, TOut1, TOut2, TOut3, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3), TFailure> ForwardParallel<TIn, T1, T2, T3, TFailure>(
         this AsyncPipeline<TIn, TFailure> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TOut1, TOut2, TOut3, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstForwardAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondForwardAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdForwardAsync)
         where TFailure : struct
     {
-        ArgumentNullException.ThrowIfNull(firstPipeAsync);
-        ArgumentNullException.ThrowIfNull(secondPipeAsync);
-        ArgumentNullException.ThrowIfNull(thirdPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
+        ArgumentNullException.ThrowIfNull(firstForwardAsync);
+        ArgumentNullException.ThrowIfNull(secondForwardAsync);
+        ArgumentNullException.ThrowIfNull(thirdForwardAsync);
 
-        return pipeline.Forward(InnerPipeAsync);
+        return pipeline.MapSuccess(InnerForwardAsync).Forward(InnerJoinSuccess<TIn, T1, T2, T3, TFailure>);
 
-        async Task<Result<TSuccess, TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
-        {
-            var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
-            var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
-            var thirdTask = thirdPipeAsync.Invoke(input, cancellationToken);
-
-            await Task.WhenAll(firstTask, secondTask, thirdTask).ConfigureAwait(false);
-
-            var firstResult = firstTask.Result;
-            if (firstResult.IsFailure)
-            {
-                return firstResult.FailureOrThrow();
-            }
-
-            var secondResult = secondTask.Result;
-            if (secondResult.IsFailure)
-            {
-                return secondResult.FailureOrThrow();
-            }
-
-            var thirdResult = thirdTask.Result;
-            if (thirdResult.IsFailure)
-            {
-                return thirdResult.FailureOrThrow();
-            }
-
-            return fold.Invoke(firstResult.SuccessOrThrow(), secondResult.SuccessOrThrow(), thirdResult.SuccessOrThrow());
-        }
+        Task<(
+            Result<T1, TFailure>,
+            Result<T2, TFailure>,
+            Result<T3, TFailure>
+        )> InnerForwardAsync(TIn input, CancellationToken cancellationToken)
+            =>
+            input.InnerPipeParallelAsync(
+                firstForwardAsync, secondForwardAsync, thirdForwardAsync, cancellationToken);
     }
 }

@@ -6,14 +6,13 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> PipeParallel<TIn, TOut1, TOut2, TOut3, TOut4, TOut5, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3, T4, T5), TFailure> PipeParallel<TIn, T1, T2, T3, T4, T5, TFailure>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut4, TFailure>>> fourthPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut5, TFailure>>> fifthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TOut5, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T4, TFailure>>> fourthPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T5, TFailure>>> fifthPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
@@ -21,49 +20,53 @@ partial class AsyncPipelineExtensions
         ArgumentNullException.ThrowIfNull(thirdPipeAsync);
         ArgumentNullException.ThrowIfNull(fourthPipeAsync);
         ArgumentNullException.ThrowIfNull(fifthPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
 
-        return pipeline.InnerPipeParallel(firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync, fifthPipeAsync, InnerFold)
-            .Pipe(InnerPipe);
+        return pipeline.InnerPipeParallel(
+            firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync, fifthPipeAsync)
+        .Pipe(
+            InnerJoinSuccess<TIn, T1, T2, T3, T4, T5, TFailure>);
+    }
 
-        Result<TSuccess, TFailure> InnerFold(
-            Result<TOut1, TFailure> firstResult,
-            Result<TOut2, TFailure> secondResult,
-            Result<TOut3, TFailure> thirdResult,
-            Result<TOut4, TFailure> fourthResult,
-            Result<TOut5, TFailure> fifthResult)
+    private static Result<(T1, T2, T3, T4, T5), TFailure> InnerJoinSuccess<TIn, T1, T2, T3, T4, T5, TFailure>(
+        (
+            Result<T1, TFailure> First,
+            Result<T2, TFailure> Second,
+            Result<T3, TFailure> Third,
+            Result<T4, TFailure> Fourth,
+            Result<T5, TFailure> Fifth
+        ) result)
+    where TFailure : struct
+    {
+        if (result.First.IsFailure)
         {
-            if (firstResult.IsFailure)
-            {
-                return firstResult.FailureOrThrow();
-            }
-
-            if (secondResult.IsFailure)
-            {
-                return secondResult.FailureOrThrow();
-            }
-
-            if (thirdResult.IsFailure)
-            {
-                return thirdResult.FailureOrThrow();
-            }
-
-            if (fourthResult.IsFailure)
-            {
-                return fourthResult.FailureOrThrow();
-            }
-
-            if (fifthResult.IsFailure)
-            {
-                return fifthResult.FailureOrThrow();
-            }
-
-            return fold.Invoke(
-                firstResult.SuccessOrThrow(),
-                secondResult.SuccessOrThrow(),
-                thirdResult.SuccessOrThrow(),
-                fourthResult.SuccessOrThrow(),
-                fifthResult.SuccessOrThrow());
+            return result.First.FailureOrThrow();
         }
+
+        if (result.Second.IsFailure)
+        {
+            return result.Second.FailureOrThrow();
+        }
+
+        if (result.Third.IsFailure)
+        {
+            return result.Third.FailureOrThrow();
+        }
+
+        if (result.Fourth.IsFailure)
+        {
+            return result.Fourth.FailureOrThrow();
+        }
+
+        if (result.Fifth.IsFailure)
+        {
+            return result.Fifth.FailureOrThrow();
+        }
+
+        return (
+            result.First.SuccessOrThrow(),
+            result.Second.SuccessOrThrow(),
+            result.Third.SuccessOrThrow(),
+            result.Fourth.SuccessOrThrow(),
+            result.Fifth.SuccessOrThrow());
     }
 }

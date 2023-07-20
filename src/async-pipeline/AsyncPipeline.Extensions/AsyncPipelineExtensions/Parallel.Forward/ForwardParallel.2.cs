@@ -6,39 +6,23 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> ForwardParallel<TIn, TOut1, TOut2, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2), TFailure> ForwardParallel<TIn, T1, T2, TFailure>(
         this AsyncPipeline<TIn, TFailure> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TOut1, TOut2, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstForwardAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondForwardAsync)
         where TFailure : struct
     {
-        ArgumentNullException.ThrowIfNull(firstPipeAsync);
-        ArgumentNullException.ThrowIfNull(secondPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
+        ArgumentNullException.ThrowIfNull(firstForwardAsync);
+        ArgumentNullException.ThrowIfNull(secondForwardAsync);
 
-        return pipeline.Forward(InnerPipeAsync);
+        return pipeline.MapSuccess(InnerForwardAsync).Forward(InnerJoinSuccess<TIn, T1, T2, TFailure>);
 
-        async Task<Result<TSuccess, TFailure>> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
-        {
-            var firstTask = firstPipeAsync.Invoke(input, cancellationToken);
-            var secondTask = secondPipeAsync.Invoke(input, cancellationToken);
-
-            await Task.WhenAll(firstTask, secondTask).ConfigureAwait(false);
-
-            var firstResult = firstTask.Result;
-            if (firstResult.IsFailure)
-            {
-                return firstResult.FailureOrThrow();
-            }
-
-            var secondResult = secondTask.Result;
-            if (secondResult.IsFailure)
-            {
-                return secondResult.FailureOrThrow();
-            }
-
-            return fold.Invoke(firstResult.SuccessOrThrow(), secondResult.SuccessOrThrow());
-        }
+        Task<(
+            Result<T1, TFailure>,
+            Result<T2, TFailure>
+        )> InnerForwardAsync(TIn input, CancellationToken cancellationToken)
+            =>
+            input.InnerPipeParallelAsync(
+                firstForwardAsync, secondForwardAsync, cancellationToken);
     }
 }

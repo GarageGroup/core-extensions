@@ -6,45 +6,49 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> PipeParallel<TIn, TOut1, TOut2, TOut3, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3), TFailure> PipeParallel<TIn, T1, T2, T3, TFailure>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TOut1, TOut2, TOut3, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
         ArgumentNullException.ThrowIfNull(thirdPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
 
-        return pipeline.InnerPipeParallel(firstPipeAsync, secondPipeAsync, thirdPipeAsync, InnerFold).Pipe(InnerPipe);
+        return pipeline.InnerPipeParallel(
+            firstPipeAsync, secondPipeAsync, thirdPipeAsync)
+        .Pipe(
+            InnerJoinSuccess<TIn, T1, T2, T3, TFailure>);
+    }
 
-        Result<TSuccess, TFailure> InnerFold(
-            Result<TOut1, TFailure> firstResult,
-            Result<TOut2, TFailure> secondResult,
-            Result<TOut3, TFailure> thirdResult)
+    private static Result<(T1, T2, T3), TFailure> InnerJoinSuccess<TIn, T1, T2, T3, TFailure>(
+        (
+            Result<T1, TFailure> First,
+            Result<T2, TFailure> Second,
+            Result<T3, TFailure> Third
+        ) result)
+    where TFailure : struct
+    {
+        if (result.First.IsFailure)
         {
-            if (firstResult.IsFailure)
-            {
-                return firstResult.FailureOrThrow();
-            }
-
-            if (secondResult.IsFailure)
-            {
-                return secondResult.FailureOrThrow();
-            }
-
-            if (thirdResult.IsFailure)
-            {
-                return thirdResult.FailureOrThrow();
-            }
-
-            return fold.Invoke(
-                firstResult.SuccessOrThrow(),
-                secondResult.SuccessOrThrow(),
-                thirdResult.SuccessOrThrow());
+            return result.First.FailureOrThrow();
         }
+
+        if (result.Second.IsFailure)
+        {
+            return result.Second.FailureOrThrow();
+        }
+
+        if (result.Third.IsFailure)
+        {
+            return result.Third.FailureOrThrow();
+        }
+
+        return (
+            result.First.SuccessOrThrow(),
+            result.Second.SuccessOrThrow(),
+            result.Third.SuccessOrThrow());
     }
 }

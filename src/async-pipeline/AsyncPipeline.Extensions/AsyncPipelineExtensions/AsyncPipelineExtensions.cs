@@ -1,8 +1,10 @@
+using System;
+
 namespace GarageGroup;
 
 public static partial class AsyncPipelineExtensions
 {
-    private static T InnerPipe<T>(T item)
+    private static IndexOutOfRangeException CreateIndexOutOfRangeException(int index)
         =>
-        item;
+        new($"An unexpected index value: {index}");
 }

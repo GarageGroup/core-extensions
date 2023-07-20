@@ -6,54 +6,58 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<TSuccess, TFailure> PipeParallel<TIn, TOut1, TOut2, TOut3, TOut4, TSuccess, TFailure>(
+    public static AsyncPipeline<(T1, T2, T3, T4), TFailure> PipeParallel<TIn, T1, T2, T3, T4, TFailure>(
         this AsyncPipeline<TIn> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut1, TFailure>>> firstPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut2, TFailure>>> secondPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut3, TFailure>>> thirdPipeAsync,
-        Func<TIn, CancellationToken, Task<Result<TOut4, TFailure>>> fourthPipeAsync,
-        Func<TOut1, TOut2, TOut3, TOut4, TSuccess> fold)
+        Func<TIn, CancellationToken, Task<Result<T1, TFailure>>> firstPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T2, TFailure>>> secondPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T3, TFailure>>> thirdPipeAsync,
+        Func<TIn, CancellationToken, Task<Result<T4, TFailure>>> fourthPipeAsync)
         where TFailure : struct
     {
         ArgumentNullException.ThrowIfNull(firstPipeAsync);
         ArgumentNullException.ThrowIfNull(secondPipeAsync);
         ArgumentNullException.ThrowIfNull(thirdPipeAsync);
         ArgumentNullException.ThrowIfNull(fourthPipeAsync);
-        ArgumentNullException.ThrowIfNull(fold);
 
-        return pipeline.InnerPipeParallel(firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync, InnerFold).Pipe(InnerPipe);
+        return pipeline.InnerPipeParallel(
+            firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync)
+        .Pipe(
+            InnerJoinSuccess<TIn, T1, T2, T3, T4, TFailure>);
+    }
 
-        Result<TSuccess, TFailure> InnerFold(
-            Result<TOut1, TFailure> firstResult,
-            Result<TOut2, TFailure> secondResult,
-            Result<TOut3, TFailure> thirdResult,
-            Result<TOut4, TFailure> fourthResult)
+    private static Result<(T1, T2, T3, T4), TFailure> InnerJoinSuccess<TIn, T1, T2, T3, T4, TFailure>(
+        (
+            Result<T1, TFailure> First,
+            Result<T2, TFailure> Second,
+            Result<T3, TFailure> Third,
+            Result<T4, TFailure> Fourth
+        ) result)
+    where TFailure : struct
+    {
+        if (result.First.IsFailure)
         {
-            if (firstResult.IsFailure)
-            {
-                return firstResult.FailureOrThrow();
-            }
-
-            if (secondResult.IsFailure)
-            {
-                return secondResult.FailureOrThrow();
-            }
-
-            if (thirdResult.IsFailure)
-            {
-                return thirdResult.FailureOrThrow();
-            }
-
-            if (fourthResult.IsFailure)
-            {
-                return fourthResult.FailureOrThrow();
-            }
-
-            return fold.Invoke(
-                firstResult.SuccessOrThrow(),
-                secondResult.SuccessOrThrow(),
-                thirdResult.SuccessOrThrow(),
-                fourthResult.SuccessOrThrow());
+            return result.First.FailureOrThrow();
         }
+
+        if (result.Second.IsFailure)
+        {
+            return result.Second.FailureOrThrow();
+        }
+
+        if (result.Third.IsFailure)
+        {
+            return result.Third.FailureOrThrow();
+        }
+
+        if (result.Fourth.IsFailure)
+        {
+            return result.Fourth.FailureOrThrow();
+        }
+
+        return (
+            result.First.SuccessOrThrow(),
+            result.Second.SuccessOrThrow(),
+            result.Third.SuccessOrThrow(),
+            result.Fourth.SuccessOrThrow());
     }
 }
