@@ -43,20 +43,11 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5)]
+    [MemberData(nameof(PipelineParallelOptionTestData))]
     public static async Task PipeParallel_Array_InputIsEmpty_ExpectEmptyArrayValue(
-        int? degreeOfParallelism)
+        PipelineParallelOption? option)
     {
         var source = AsyncPipeline.Pipe<FlatArray<RefType>>(default, default);
-
-        var option = new PipelineParallelOption
-        {
-            DegreeOfParallelism = degreeOfParallelism
-        };
 
         var actual = await source.PipeParallel(
             pipeAsync: (_, _) => Task.FromResult(SomeString),
@@ -69,13 +60,9 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5)]
+    [MemberData(nameof(PipelineParallelOptionTestData))]
     public static async Task PipeParallel_Array_InputIsNotEmpty_ExpectArrayValue(
-        int? degreeOfParallelism)
+        PipelineParallelOption? option)
     {
         var mapper = new Dictionary<RecordStruct, RecordType?>
         {
@@ -85,11 +72,6 @@ partial class AsyncPipelineExtensionsTest
         };
 
         var source = AsyncPipeline.Pipe(mapper.Keys.ToFlatArray(), default);
-
-        var option = new PipelineParallelOption
-        {
-            DegreeOfParallelism = degreeOfParallelism
-        };
 
         var actual = await source.PipeParallel(
             pipeAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ partial class AsyncPipelineExtensions
     public static AsyncPipeline<FlatArray<TOut>> PipeParallel<TIn, TOut>(
         this AsyncPipeline<FlatArray<TIn>> pipeline,
         Func<TIn, CancellationToken, Task<TOut>> pipeAsync,
-        PipelineParallelOption option = default)
+        [AllowNull] PipelineParallelOption option = default)
     {
         ArgumentNullException.ThrowIfNull(pipeAsync);
 
@@ -19,13 +20,14 @@ partial class AsyncPipelineExtensions
 
         ValueTask<FlatArray<TOut>> InnerPipeAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
             =>
-            input.InnerPipeParallelAsync(pipeAsync, option, cancellationToken);
+            input.InnerPipeParallelAsync(pipeAsync, option, pipeline.Configuration, cancellationToken);
     }
 
     private static async ValueTask<FlatArray<TOut>> InnerPipeParallelAsync<TIn, TOut>(
         this FlatArray<TIn> input,
         Func<TIn, CancellationToken, Task<TOut>> pipeAsync,
-        PipelineParallelOption option,
+        PipelineParallelOption? option,
+        AsyncPipelineConfiguration pipelineConfiguration,
         CancellationToken cancellationToken)
     {
         if (input.IsEmpty)
@@ -35,23 +37,16 @@ partial class AsyncPipelineExtensions
 
         var items = new ConcurrentBag<(int Index, TOut Value)>();
 
-        var parallelOptions = new ParallelOptions
-        {
-            CancellationToken = cancellationToken
-        };
+        var options = pipelineConfiguration.InnerCreateParallelOptions(option?.DegreeOfParallelism, cancellationToken);
+        var continueOnCapturedContext = pipelineConfiguration.ContinueOnCapturedContext;
 
-        if (option.DegreeOfParallelism > 0)
-        {
-            parallelOptions.MaxDegreeOfParallelism = option.DegreeOfParallelism.Value;
-        }
-
-        await Parallel.ForEachAsync(Enumerable.Range(0, input.Length), parallelOptions, InnerInvokeAsync).ConfigureAwait(false);
+        await Parallel.ForEachAsync(Enumerable.Range(0, input.Length), options, InnerInvokeAsync).ConfigureAwait(continueOnCapturedContext);
 
         return items.OrderBy(GetIndex).Select(GetValue).ToFlatArray();
 
         async ValueTask InnerInvokeAsync(int index, CancellationToken cancellationToken)
         {
-            var value = await pipeAsync.Invoke(input[index], cancellationToken).ConfigureAwait(false);
+            var value = await pipeAsync.Invoke(input[index], cancellationToken).ConfigureAwait(continueOnCapturedContext);
             items.Add((index, value));
         }
 

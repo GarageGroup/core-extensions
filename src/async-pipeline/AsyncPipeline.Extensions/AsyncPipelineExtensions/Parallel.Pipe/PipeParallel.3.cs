@@ -33,7 +33,7 @@ partial class AsyncPipelineExtensions
 
         Task<(T1, T2, T3)> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
             =>
-            input.InnerPipeParallelAsync(firstPipeAsync, secondPipeAsync, thirdPipeAsync, cancellationToken);
+            input.InnerPipeParallelAsync(firstPipeAsync, secondPipeAsync, thirdPipeAsync, pipeline.Configuration, cancellationToken);
     }
 
     private static async Task<(T1, T2, T3)> InnerPipeParallelAsync<TIn, T1, T2, T3>(
@@ -41,16 +41,15 @@ partial class AsyncPipelineExtensions
         Func<TIn, CancellationToken, Task<T1>> firstPipeAsync,
         Func<TIn, CancellationToken, Task<T2>> secondPipeAsync,
         Func<TIn, CancellationToken, Task<T3>> thirdPipeAsync,
+        AsyncPipelineConfiguration configuration,
         CancellationToken cancellationToken)
     {
         T1 first = default!;
         T2 second = default!;
         T3 third = default!;
 
-        await Parallel.ForEachAsync(
-            source: Enumerable.Range(0, 3),
-            cancellationToken: cancellationToken,
-            body: InnerInvokeAsync);
+        var options = configuration.InnerCreateParallelOptions(null, cancellationToken);
+        await Parallel.ForEachAsync(Enumerable.Range(0, 3), options, InnerInvokeAsync).ConfigureAwait(configuration.ContinueOnCapturedContext);
 
         return (first, second, third);
 
@@ -59,15 +58,15 @@ partial class AsyncPipelineExtensions
             switch (index)
             {
                 case 0:
-                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 1:
-                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 2:
-                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 default:
