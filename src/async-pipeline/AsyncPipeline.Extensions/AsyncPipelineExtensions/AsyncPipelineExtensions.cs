@@ -79,6 +79,7 @@ public static partial class AsyncPipelineExtensions
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             =>
             SynchronizationContext.Current == context && TryExecuteTask(task);
+
         protected override IEnumerable<Task>? GetScheduledTasks()
             =>
             null;
