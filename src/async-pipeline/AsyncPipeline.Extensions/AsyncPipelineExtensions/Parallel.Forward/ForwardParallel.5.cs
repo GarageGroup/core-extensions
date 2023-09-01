@@ -32,6 +32,12 @@ partial class AsyncPipelineExtensions
         )> InnerForwardAsync(TIn input, CancellationToken cancellationToken)
             =>
             input.InnerPipeParallelAsync(
-                firstForwardAsync, secondForwardAsync, thirdForwardAsync, fourthForwardAsync, fifthForwardAsync, cancellationToken);
+                firstForwardAsync,
+                secondForwardAsync,
+                thirdForwardAsync,
+                fourthForwardAsync,
+                fifthForwardAsync,
+                pipeline.Configuration,
+                cancellationToken);
     }
 }

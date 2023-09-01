@@ -54,8 +54,15 @@ partial class AsyncPipelineExtensions
         Task<(T1, T2, T3, T4, T5, T6, T7, T8)> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
             =>
             input.InnerPipeParallelAsync(
-                firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync,
-                fifthPipeAsync, sixthPipeAsync, seventhPipeAsync, eighthPipeAsync,
+                firstPipeAsync,
+                secondPipeAsync,
+                thirdPipeAsync,
+                fourthPipeAsync,
+                fifthPipeAsync,
+                sixthPipeAsync,
+                seventhPipeAsync,
+                eighthPipeAsync,
+                pipeline.Configuration,
                 cancellationToken);
     }
 
@@ -69,6 +76,7 @@ partial class AsyncPipelineExtensions
         Func<TIn, CancellationToken, Task<T6>> sixthPipeAsync,
         Func<TIn, CancellationToken, Task<T7>> seventhPipeAsync,
         Func<TIn, CancellationToken, Task<T8>> eighthPipeAsync,
+        AsyncPipelineConfiguration configuration,
         CancellationToken cancellationToken)
     {
         T1 first = default!;
@@ -80,10 +88,8 @@ partial class AsyncPipelineExtensions
         T7 seventh = default!;
         T8 eighth = default!;
 
-        await Parallel.ForEachAsync(
-            source: Enumerable.Range(0, 8),
-            cancellationToken: cancellationToken,
-            body: InnerInvokeAsync);
+        var options = configuration.InnerCreateParallelOptions(null, cancellationToken);
+        await Parallel.ForEachAsync(Enumerable.Range(0, 8), options, InnerInvokeAsync).ConfigureAwait(configuration.ContinueOnCapturedContext);
 
         return (first, second, third, fourth, fifth, sixth, seventh, eighth);
 
@@ -92,35 +98,35 @@ partial class AsyncPipelineExtensions
             switch (index)
             {
                 case 0:
-                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 1:
-                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 2:
-                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 3:
-                fourth = await fourthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                fourth = await fourthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 4:
-                fifth = await fifthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                fifth = await fifthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 5:
-                sixth = await sixthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                sixth = await sixthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 6:
-                seventh = await seventhPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                seventh = await seventhPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 7:
-                eighth = await eighthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                eighth = await eighthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 default:

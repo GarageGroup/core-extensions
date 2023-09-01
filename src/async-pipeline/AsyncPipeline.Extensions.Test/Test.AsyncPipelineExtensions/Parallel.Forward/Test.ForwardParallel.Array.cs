@@ -43,21 +43,12 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5)]
+    [MemberData(nameof(PipelineParallelOptionTestData))]
     public static async Task ForwardParallel_Array_SourceResultIsFailure_ExpectFailureValue(
-        int? degreeOfParallelism)
+        PipelineParallelOption? option)
     {
         var failure = Failure.Create("Some source failure message");
         var source = AsyncPipeline.Pipe<FlatArray<RefType?>, Failure<Unit>>(failure, default);
-
-        var option = new PipelineParallelOption
-        {
-            DegreeOfParallelism = degreeOfParallelism
-        };
 
         var actual = await source.ForwardParallel(
             forwardAsync: (_, _) => Task.FromResult<Result<RecordType, Failure<Unit>>>(MinusFifteenIdNullNameRecord),
@@ -68,21 +59,12 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5)]
+    [MemberData(nameof(PipelineParallelOptionTestData))]
     public static async Task ForwardParallel_Array_InputIsEmpty_ExpectSuccessEmptyArrayValue(
-        int? degreeOfParallelism)
+        PipelineParallelOption? option)
     {
         var sourceValue = default(FlatArray<RefType>);
         var source = AsyncPipeline.Pipe<FlatArray<RefType>, Failure<Unit>>(sourceValue, default);
-
-        var option = new PipelineParallelOption
-        {
-            DegreeOfParallelism = degreeOfParallelism
-        };
 
         var actual = await source.ForwardParallel(
             forwardAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(SomeString),
@@ -95,47 +77,39 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5)]
+    [MemberData(nameof(PipelineParallelOptionTestData))]
     public static async Task ForwardParallel_Array_NotAllResultsAreSuccess_ExpectFailureValue(
-        int? degreeOfParallelism)
+        PipelineParallelOption? option)
     {
-        var failure = Failure.Create("Some failure message");
-
         var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
         {
             [SomeTextRecordStruct] = MinusFifteenIdSomeStringNameRecord,
-            [AnotherTextRecordStruct] = failure,
+            [AnotherTextRecordStruct] = Failure.Create("Some failure message"),
             [UpperAnotherTextRecordStruct] = ZeroIdNullNameRecord,
             [default] = Failure.Create("Some message")
         };
 
         var source = AsyncPipeline.Pipe<FlatArray<RecordStruct>, Failure<Unit>>(mapper.Keys.ToFlatArray(), default);
 
-        var option = new PipelineParallelOption
-        {
-            DegreeOfParallelism = degreeOfParallelism
-        };
-
         var actual = await source.ForwardParallel(
             forwardAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),
             option: option)
         .ToTask();
 
-        Assert.StrictEqual(failure, actual);
+        var possibleFailures = new[]
+        {
+            Failure.Create("Some failure message"),
+            Failure.Create("Some message")
+        };
+
+        Assert.True(actual.IsFailure);
+        Assert.Contains(actual.FailureOrThrow(), possibleFailures);
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(5)]
+    [MemberData(nameof(PipelineParallelOptionTestData))]
     public static async Task ForwardParallel_Array_AllResultsAreSuccess_ExpectSuccessArrayValue(
-        int? degreeOfParallelism)
+        PipelineParallelOption? option)
     {
         var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
         {
@@ -145,11 +119,6 @@ partial class AsyncPipelineExtensionsTest
         };
 
         var source = AsyncPipeline.Pipe<FlatArray<RecordStruct>, Failure<Unit>>(mapper.Keys.ToFlatArray(), default);
-
-        var option = new PipelineParallelOption
-        {
-            DegreeOfParallelism = degreeOfParallelism
-        };
 
         var actual = await source.ForwardParallel(
             forwardAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),

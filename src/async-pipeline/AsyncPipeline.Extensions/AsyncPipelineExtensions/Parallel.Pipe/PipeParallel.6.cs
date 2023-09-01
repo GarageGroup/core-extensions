@@ -46,7 +46,14 @@ partial class AsyncPipelineExtensions
         Task<(T1, T2, T3, T4, T5, T6)> InnerPipeAsync(TIn input, CancellationToken cancellationToken)
             =>
             input.InnerPipeParallelAsync(
-                firstPipeAsync, secondPipeAsync, thirdPipeAsync, fourthPipeAsync, fifthPipeAsync, sixthPipeAsync, cancellationToken);
+                firstPipeAsync,
+                secondPipeAsync,
+                thirdPipeAsync,
+                fourthPipeAsync,
+                fifthPipeAsync,
+                sixthPipeAsync,
+                pipeline.Configuration,
+                cancellationToken);
     }
 
     private static async Task<(T1, T2, T3, T4, T5, T6)> InnerPipeParallelAsync<TIn, T1, T2, T3, T4, T5, T6>(
@@ -57,6 +64,7 @@ partial class AsyncPipelineExtensions
         Func<TIn, CancellationToken, Task<T4>> fourthPipeAsync,
         Func<TIn, CancellationToken, Task<T5>> fifthPipeAsync,
         Func<TIn, CancellationToken, Task<T6>> sixthPipeAsync,
+        AsyncPipelineConfiguration configuration,
         CancellationToken cancellationToken)
     {
         T1 first = default!;
@@ -66,10 +74,8 @@ partial class AsyncPipelineExtensions
         T5 fifth = default!;
         T6 sixth = default!;
 
-        await Parallel.ForEachAsync(
-            source: Enumerable.Range(0, 6),
-            cancellationToken: cancellationToken,
-            body: InnerInvokeAsync);
+        var options = configuration.InnerCreateParallelOptions(null, cancellationToken);
+        await Parallel.ForEachAsync(Enumerable.Range(0, 6), options, InnerInvokeAsync).ConfigureAwait(configuration.ContinueOnCapturedContext);
 
         return (first, second, third, fourth, fifth, sixth);
 
@@ -78,27 +84,27 @@ partial class AsyncPipelineExtensions
             switch (index)
             {
                 case 0:
-                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                first = await firstPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 1:
-                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                second = await secondPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 2:
-                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                third = await thirdPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 3:
-                fourth = await fourthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                fourth = await fourthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 4:
-                fifth = await fifthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                fifth = await fifthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 case 5:
-                sixth = await sixthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(false);
+                sixth = await sixthPipeAsync.Invoke(input, cancellationToken).ConfigureAwait(configuration.ContinueOnCapturedContext);
                 break;
 
                 default:
