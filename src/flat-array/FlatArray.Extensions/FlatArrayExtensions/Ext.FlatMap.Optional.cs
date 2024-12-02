@@ -14,15 +14,19 @@ partial class FlatArrayExtensions
             return default;
         }
 
-        var list = new List<TResult>(source.Length);
+        return InnerGetItems().ToFlatArray();
 
-        for (var i = 0; i < source.Length; i++)
+        IEnumerable<TResult> InnerGetItems()
         {
-            var item = source[i];
-            map.Invoke(item).OnPresent(list.Add);
+            for (var i = 0; i < source.Length; i++)
+            {
+                var item = map.Invoke(source[i]);
+                if (item.IsPresent)
+                {
+                    yield return item.OrThrow();
+                }
+            }
         }
-
-        return list;
     }
 
     public static FlatArray<TResult> FlatMap<TSource, TResult>(this FlatArray<TSource> source, Func<TSource, int, Optional<TResult>> map)
@@ -34,13 +38,18 @@ partial class FlatArrayExtensions
             return default;
         }
 
-        var list = new List<TResult>(source.Length);
+        return InnerGetItems().ToFlatArray();
 
-        for (var i = 0; i < source.Length; i++)
+        IEnumerable<TResult> InnerGetItems()
         {
-            map.Invoke(source[i], i).OnPresent(list.Add);
+            for (var i = 0; i < source.Length; i++)
+            {
+                var item = map.Invoke(source[i], i);
+                if (item.IsPresent)
+                {
+                    yield return item.OrThrow();
+                }
+            }
         }
-
-        return list;
     }
 }

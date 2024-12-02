@@ -1,5 +1,3 @@
 namespace GarageGroup;
 
-public static partial class StringExtensions
-{
-}
+public static partial class StringExtensions;

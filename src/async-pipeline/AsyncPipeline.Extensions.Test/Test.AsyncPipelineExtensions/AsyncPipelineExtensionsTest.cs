@@ -1,18 +1,17 @@
 using System.Collections.Generic;
+using Xunit;
 
 namespace GarageGroup.Core.Collections.Test;
 
 public static partial class AsyncPipelineExtensionsTest
 {
-    public static IEnumerable<object?[]> PipelineParallelOptionTestData
+    public static TheoryData<PipelineParallelOption?> PipelineParallelOptionTestData
         =>
-        new[]
+        new()
         {
-            new PipelineParallelOption?[]
             {
                 null
             },
-            new PipelineParallelOption?[]
             {
                 new()
                 {
@@ -20,7 +19,6 @@ public static partial class AsyncPipelineExtensionsTest
                     FailureAction = PipelineParallelFailureAction.Stop
                 }
             },
-            new PipelineParallelOption?[]
             {
                 new()
                 {
@@ -28,21 +26,18 @@ public static partial class AsyncPipelineExtensionsTest
                     FailureAction = PipelineParallelFailureAction.Default
                 }
             },
-            new PipelineParallelOption?[]
             {
                 new()
                 {
                     DegreeOfParallelism = 0
                 }
             },
-            new PipelineParallelOption?[]
             {
                 new()
                 {
                     DegreeOfParallelism = 1
                 }
             },
-            new PipelineParallelOption?[]
             {
                 new()
                 {
@@ -50,7 +45,6 @@ public static partial class AsyncPipelineExtensionsTest
                     FailureAction = PipelineParallelFailureAction.Default
                 }
             },
-            new PipelineParallelOption?[]
             {
                 new()
                 {
