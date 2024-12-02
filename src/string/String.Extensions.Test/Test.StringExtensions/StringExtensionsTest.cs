@@ -1,5 +1,3 @@
 namespace GarageGroup.Core.String.Extensions.Test;
 
-public static partial class StringExtensionsTest
-{
-}
+public static partial class StringExtensionsTest;

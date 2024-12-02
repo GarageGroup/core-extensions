@@ -1,5 +1,3 @@
 namespace GarageGroup.Core.Collections.Test;
 
-public sealed partial class FlatArrayExtensionsTest
-{
-}
+public sealed partial class FlatArrayExtensionsTest;
