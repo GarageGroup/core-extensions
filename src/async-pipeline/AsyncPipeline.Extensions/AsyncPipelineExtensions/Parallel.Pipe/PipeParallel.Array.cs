@@ -35,11 +35,16 @@ partial class AsyncPipelineExtensions
             return default;
         }
 
+        var continueOnCapturedContext = pipelineConfiguration.ContinueOnCapturedContext;
+        if (input.Length is 1)
+        {
+            var value = await pipeAsync.Invoke(input[0], cancellationToken).ConfigureAwait(continueOnCapturedContext);
+            return new(value);
+        }
+
         var items = new ConcurrentBag<(int Index, TOut Value)>();
 
         var options = pipelineConfiguration.InnerCreateParallelOptions(option?.DegreeOfParallelism, cancellationToken);
-        var continueOnCapturedContext = pipelineConfiguration.ContinueOnCapturedContext;
-
         await Parallel.ForEachAsync(Enumerable.Range(0, input.Length), options, InnerInvokeAsync).ConfigureAwait(continueOnCapturedContext);
 
         return items.OrderBy(GetIndex).Select(GetValue).ToFlatArray();

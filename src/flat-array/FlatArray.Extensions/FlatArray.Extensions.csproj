@@ -9,11 +9,11 @@
     <NoWarn>$(NoWarn);IDE0130;CA1859</NoWarn>
     <RootNamespace>GarageGroup</RootNamespace>
     <AssemblyName>GarageGroup.Core.Collections.FlatArray.Extensions</AssemblyName>
-    <Version>1.10.0</Version>
+    <Version>1.10.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PrimeFuncPack.Core.FlatArray" Version="1.5.0" />
+    <PackageReference Include="PrimeFuncPack.Core.FlatArray" Version="1.5.1" />
     <PackageReference Include="PrimeFuncPack.Core.Optional" Version="2.1.0" />
   </ItemGroup>
 

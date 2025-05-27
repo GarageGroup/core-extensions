@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using PrimeFuncPack.UnitTest;
 using Xunit;
@@ -21,7 +19,7 @@ partial class AsyncPipelineExtensionsTest
     [InlineData(0, AnotherString, LowerSomeString, WhiteSpaceString)]
     [InlineData(1, LowerSomeString)]
     [InlineData(5, WhiteSpaceString, EmptyString)]
-    public static void PipeParallel_Array_PipeAsyncIsNull_ExpectArgumentNullException(
+    public static void PipeParallelValue_ArrayUnit_PipeAsyncIsNull_ExpectArgumentNullException(
         int? degreeOfParallelism, params string?[] input)
     {
         var source = AsyncPipeline.Pipe(input.ToFlatArray(), default);
@@ -37,8 +35,8 @@ partial class AsyncPipelineExtensionsTest
 
         void Test()
             =>
-            _ = source.PipeParallel(
-                pipeAsync: (Func<string?, CancellationToken, Task<RecordType>>)null!,
+            _ = source.PipeParallelValue(
+                pipeAsync: null!,
                 option: option);
     }
 
@@ -46,24 +44,18 @@ partial class AsyncPipelineExtensionsTest
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [0])]
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [1])]
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [int.MaxValue])]
-    public static async Task PipeParallel_Array_ExpectArrayValue(
+    public static async Task PipeParallelValue_ArrayUnit_ExpectUnit(
         PipelineParallelOption? option, int count)
     {
-        var mapper = new Dictionary<RecordStruct, RecordType?>
-        {
-            [SomeTextRecordStruct] = MinusFifteenIdSomeStringNameRecord,
-            [AnotherTextRecordStruct] = null,
-            [UpperAnotherTextRecordStruct] = ZeroIdNullNameRecord
-        };
+        FlatArray<RecordStruct> input = [SomeTextRecordStruct, AnotherTextRecordStruct, UpperAnotherTextRecordStruct];
+        var source = AsyncPipeline.Pipe(input.Take(count), default);
 
-        var source = AsyncPipeline.Pipe(mapper.Keys.ToFlatArray().Take(count), default);
-
-        var actual = await source.PipeParallel(
-            pipeAsync: (key, _) => Task.FromResult(mapper[key]),
+        var actual = await source.PipeParallelValue(
+            pipeAsync: static (_, _) => default,
             option: option)
         .ToTask();
 
-        var expected = mapper.Values.ToFlatArray().Take(count);
+        var expected = default(Unit);
 
         Assert.StrictEqual(expected, actual);
     }

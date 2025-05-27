@@ -7,9 +7,9 @@ namespace GarageGroup;
 
 partial class AsyncPipelineExtensions
 {
-    public static AsyncPipeline<FlatArray<TOut>, TFailure> ForwardParallel<TIn, TOut, TFailure>(
+    public static AsyncPipeline<Unit, TFailure> ForwardParallel<TIn, TFailure>(
         this AsyncPipeline<FlatArray<TIn>, TFailure> pipeline,
-        Func<TIn, CancellationToken, Task<Result<TOut, TFailure>>> forwardAsync,
+        Func<TIn, CancellationToken, Task<Result<Unit, TFailure>>> forwardAsync,
         [AllowNull] PipelineParallelOption option = default)
         where TFailure : struct
     {
@@ -18,21 +18,21 @@ partial class AsyncPipelineExtensions
 
         if (option?.FailureAction is not PipelineParallelFailureAction.Stop)
         {
-            return pipeline.MapSuccessValue(InnerForwardAsync).Forward(InnerJoinSuccess<TIn, TOut, TFailure>);
+            return pipeline.MapSuccessValue(InnerForwardAsync).Forward(InnerJoinSuccess<TIn, TFailure>);
         }
 
         return pipeline.ForwardValue(InnerPipeCatchingAsync);
 
-        ValueTask<FlatArray<Result<TOut, TFailure>>> InnerForwardAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
+        ValueTask<FlatArray<Result<Unit, TFailure>>> InnerForwardAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
             =>
             input.InnerPipeParallelAsync(forwardAsync, option, pipeline.Configuration, cancellationToken);
 
-        async ValueTask<Result<FlatArray<TOut>, TFailure>> InnerPipeCatchingAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
+        async ValueTask<Result<Unit, TFailure>> InnerPipeCatchingAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
         {
             if (input.Length < 2)
             {
                 var results = await InnerForwardAsync(input, cancellationToken).ConfigureAwait(continueOnCapturedContext);
-                return InnerJoinSuccess<TIn, TOut, TFailure>(results);
+                return InnerJoinSuccess<TIn, TFailure>(results);
             }
 
             try
@@ -46,7 +46,7 @@ partial class AsyncPipelineExtensions
             }
         }
 
-        async ValueTask<TOut> InnerPipeOrExceptionAsync(TIn input, CancellationToken cancellationToken)
+        async ValueTask<Unit> InnerPipeOrExceptionAsync(TIn input, CancellationToken cancellationToken)
         {
             var result = await forwardAsync.Invoke(input, cancellationToken).ConfigureAwait(continueOnCapturedContext);
             return result.SuccessOrThrow(InnerFailureException<TFailure>.From);

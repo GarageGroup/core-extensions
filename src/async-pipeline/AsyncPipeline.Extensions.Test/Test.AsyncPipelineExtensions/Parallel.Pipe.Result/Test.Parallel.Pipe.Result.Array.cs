@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PrimeFuncPack.UnitTest;
@@ -43,26 +44,10 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [MemberData(nameof(PipelineParallelOptionTestData))]
-    public static async Task PipeParallel_Result_Array_InputIsEmpty_ExpectSuccessEmptyArrayValue(
-        PipelineParallelOption? option)
-    {
-        var source = AsyncPipeline.Pipe<FlatArray<RefType>>(default, default);
-
-        var actual = await source.PipeParallel(
-            pipeAsync: (_, _) => Task.FromResult<Result<string, Failure<Unit>>>(SomeString),
-            option: option)
-        .ToTask();
-
-        var expected = default(FlatArray<string>);
-
-        Assert.StrictEqual(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(PipelineParallelOptionTestData))]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [1])]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [int.MaxValue])]
     public static async Task PipeParallel_Result_Array_NotAllResultsAreSuccess_ExpectFailureValue(
-        PipelineParallelOption? option)
+        PipelineParallelOption? option, int count)
     {
         var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
         {
@@ -72,10 +57,14 @@ partial class AsyncPipelineExtensionsTest
             [default] = Failure.Create("Some message")
         };
 
-        var source = AsyncPipeline.Pipe(mapper.Keys.ToFlatArray(), default);
+        var source = count switch
+        {
+            1 => AsyncPipeline.Pipe(AnotherTextRecordStruct.AsFlatArray(), default),
+            _ => AsyncPipeline.Pipe(mapper.Keys.ToFlatArray(), default)
+        };
 
         var actual = await source.PipeParallel(
-            pipeAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),
+            pipeAsync: (key, _) => Task.FromResult(mapper[key]),
             option: option)
         .ToTask();
 
@@ -86,13 +75,15 @@ partial class AsyncPipelineExtensionsTest
         };
 
         Assert.True(actual.IsFailure);
-        Assert.Contains(actual.FailureOrThrow(), possibleFailures);
+        Assert.Contains(actual.FailureOrThrow(), possibleFailures.Take(count));
     }
 
     [Theory]
-    [MemberData(nameof(PipelineParallelOptionTestData))]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [0])]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [1])]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [int.MaxValue])]
     public static async Task PipeParallel_Result_Array_AllResultsAreSuccess_ExpectSuccessArrayValue(
-        PipelineParallelOption? option)
+        PipelineParallelOption? option, int count)
     {
         var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
         {
@@ -101,15 +92,15 @@ partial class AsyncPipelineExtensionsTest
             [UpperAnotherTextRecordStruct] = ZeroIdNullNameRecord
         };
 
-        var source = AsyncPipeline.Pipe(mapper.Keys.ToFlatArray(), default);
+        var source = AsyncPipeline.Pipe(mapper.Keys.ToFlatArray().Take(count), default);
 
         var actual = await source.PipeParallel(
-            pipeAsync: (RecordStruct key, CancellationToken _) => Task.FromResult(mapper[key]),
+            pipeAsync: (key, _) => Task.FromResult(mapper[key]),
             option: option)
         .ToTask();
 
-        var expected = new FlatArray<RecordType?>(MinusFifteenIdSomeStringNameRecord, null, ZeroIdNullNameRecord);
+        FlatArray<RecordType?> expected = [MinusFifteenIdSomeStringNameRecord, null, ZeroIdNullNameRecord];
 
-        Assert.StrictEqual(expected, actual);
+        Assert.StrictEqual(expected.Take(count), actual);
     }
 }

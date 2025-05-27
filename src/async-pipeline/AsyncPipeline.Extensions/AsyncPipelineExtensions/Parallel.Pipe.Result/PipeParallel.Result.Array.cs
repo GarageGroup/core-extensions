@@ -29,6 +29,12 @@ partial class AsyncPipelineExtensions
 
         async ValueTask<Result<FlatArray<TOut>, TFailure>> InnerPipeCatchingAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
         {
+            if (input.Length < 2)
+            {
+                var results = await InnerPipeAsync(input, cancellationToken).ConfigureAwait(continueOnCapturedContext);
+                return InnerJoinSuccess<TIn, TOut, TFailure>(results);
+            }
+
             try
             {
                 return await input.InnerPipeParallelAsync(
@@ -66,5 +72,21 @@ partial class AsyncPipelineExtensions
         }
 
         return builder.MoveToFlatArray();
+    }
+
+    private static Result<Unit, TFailure> InnerJoinSuccess<TIn, TFailure>(
+        FlatArray<Result<Unit, TFailure>> results)
+        where TFailure : struct
+    {
+        for (var i = 0; i < results.Length; i++)
+        {
+            var result = results[i];
+            if (result.IsFailure)
+            {
+                return result.FailureOrThrow();
+            }
+        }
+
+        return Result.Success<Unit>(default);
     }
 }

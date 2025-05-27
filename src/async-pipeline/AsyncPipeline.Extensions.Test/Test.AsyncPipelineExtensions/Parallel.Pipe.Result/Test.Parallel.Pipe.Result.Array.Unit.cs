@@ -22,7 +22,7 @@ partial class AsyncPipelineExtensionsTest
     [InlineData(0, AnotherString, LowerSomeString, WhiteSpaceString)]
     [InlineData(1, LowerSomeString)]
     [InlineData(5, WhiteSpaceString, EmptyString)]
-    public static void PipeParallelValue_Result_Array_PipeAsyncIsNull_ExpectArgumentNullException(
+    public static void PipeParallel_Result_ArrayUnit_PipeAsyncIsNull_ExpectArgumentNullException(
         int? degreeOfParallelism, params string?[] input)
     {
         var source = AsyncPipeline.Pipe(input.ToFlatArray(), default);
@@ -38,22 +38,22 @@ partial class AsyncPipelineExtensionsTest
 
         void Test()
             =>
-            _ = source.PipeParallelValue(
-                pipeAsync: (Func<string?, CancellationToken, ValueTask<Result<RecordType, Failure<Unit>>>>)null!,
+            _ = source.PipeParallel(
+                pipeAsync: (Func<string?, CancellationToken, Task<Result<Unit, Failure<Unit>>>>)null!,
                 option: option);
     }
 
     [Theory]
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [1])]
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [int.MaxValue])]
-    public static async Task PipeParallelValue_Result_Array_NotAllResultsAreSuccess_ExpectFailureValue(
+    public static async Task PipeParallel_Result_ArrayUnit_NotAllResultsAreSuccess_ExpectFailureValue(
         PipelineParallelOption? option, int count)
     {
-        var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
+        var mapper = new Dictionary<RecordStruct, Result<Unit, Failure<Unit>>>
         {
-            [SomeTextRecordStruct] = MinusFifteenIdSomeStringNameRecord,
+            [SomeTextRecordStruct] = Result.Success<Unit>(default),
             [AnotherTextRecordStruct] = Failure.Create("Some failure message"),
-            [UpperAnotherTextRecordStruct] = ZeroIdNullNameRecord,
+            [UpperAnotherTextRecordStruct] = Result.Success<Unit>(default),
             [default] = Failure.Create("Some message")
         };
 
@@ -63,8 +63,8 @@ partial class AsyncPipelineExtensionsTest
             _ => AsyncPipeline.Pipe(mapper.Keys.ToFlatArray(), default)
         };
 
-        var actual = await source.PipeParallelValue(
-            pipeAsync: (RecordStruct key, CancellationToken _) => ValueTask.FromResult(mapper[key]),
+        var actual = await source.PipeParallel(
+            pipeAsync: (key, _) => Task.FromResult(mapper[key]),
             option: option)
         .ToTask();
 
@@ -82,25 +82,19 @@ partial class AsyncPipelineExtensionsTest
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [0])]
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [1])]
     [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [int.MaxValue])]
-    public static async Task PipeParallelValue_Result_Array_AllResultsAreSuccess_ExpectSuccessArrayValue(
+    public static async Task PipeParallel_Result_ArrayUnit_AllResultsAreSuccess_ExpectSuccessValue(
         PipelineParallelOption? option, int count)
     {
-        var mapper = new Dictionary<RecordStruct, Result<RecordType?, Failure<Unit>>>
-        {
-            [SomeTextRecordStruct] = MinusFifteenIdSomeStringNameRecord,
-            [AnotherTextRecordStruct] = null,
-            [UpperAnotherTextRecordStruct] = ZeroIdNullNameRecord
-        };
+        FlatArray<RecordStruct> input = [SomeTextRecordStruct, AnotherTextRecordStruct];
+        var source = AsyncPipeline.Pipe(input.Take(count), default);
 
-        var source = AsyncPipeline.Pipe(mapper.Keys.ToFlatArray().Take(count), default);
-
-        var actual = await source.PipeParallelValue(
-            pipeAsync: (key, _) => ValueTask.FromResult(mapper[key]),
+        var actual = await source.PipeParallel(
+            pipeAsync: (key, _) => Task.FromResult(Result.Success<Unit>(default).With<Failure<Unit>>()),
             option: option)
         .ToTask();
 
-        FlatArray<RecordType?> expected = [MinusFifteenIdSomeStringNameRecord, null, ZeroIdNullNameRecord];
+        var expected = Result.Success<Unit>(default);
 
-        Assert.StrictEqual(expected.Take(count), actual);
+        Assert.StrictEqual(expected, actual);
     }
 }
