@@ -67,4 +67,20 @@ partial class AsyncPipelineExtensions
 
         return builder.MoveToFlatArray();
     }
+
+    private static Result<Unit, TFailure> InnerJoinSuccess<TIn, TFailure>(
+        FlatArray<Result<Unit, TFailure>> results)
+        where TFailure : struct
+    {
+        for (var i = 0; i < results.Length; i++)
+        {
+            var result = results[i];
+            if (result.IsFailure)
+            {
+                return result.FailureOrThrow();
+            }
+        }
+
+        return Result.Success<Unit>(default);
+    }
 }

@@ -9,7 +9,7 @@
     <NoWarn>$(NoWarn);IDE0130;CA1859</NoWarn>
     <RootNamespace>GarageGroup</RootNamespace>
     <AssemblyName>GarageGroup.Core.AsyncPipeline.Extensions</AssemblyName>
-    <Version>0.3.1-build.1</Version>
+    <Version>0.4.0-build.1</Version>
   </PropertyGroup>
 
  <ItemGroup>
