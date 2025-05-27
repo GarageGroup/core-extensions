@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using PrimeFuncPack.UnitTest;
 using Xunit;
@@ -43,29 +41,14 @@ partial class AsyncPipelineExtensionsTest
     }
 
     [Theory]
-    [MemberData(nameof(PipelineParallelOptionTestData))]
-    public static async Task PipeParallel_ArrayUnit_InputIsEmpty_ExpectUnit(
-        PipelineParallelOption? option)
-    {
-        var source = AsyncPipeline.Pipe<FlatArray<RefType>>(default, default);
-
-        var actual = await source.PipeParallel(
-            pipeAsync: static (_, _) => Task.FromResult<Unit>(default),
-            option: option)
-        .ToTask();
-
-        var expected = default(Unit);
-
-        Assert.StrictEqual(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(PipelineParallelOptionTestData))]
-    public static async Task PipeParallel_ArrayUnit_InputIsNotEmpty_ExpectUnit(
-        PipelineParallelOption? option)
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [0])]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [1])]
+    [MemberData(nameof(PipelineParallelOptionTestDataWithCount), [int.MaxValue])]
+    public static async Task PipeParallel_ArrayUnit_ExpectUnit(
+        PipelineParallelOption? option, int count)
     {
         FlatArray<RecordStruct> input = [SomeTextRecordStruct, AnotherTextRecordStruct, UpperAnotherTextRecordStruct];
-        var source = AsyncPipeline.Pipe(input, default);
+        var source = AsyncPipeline.Pipe(input.Take(count), default);
 
         var actual = await source.PipeParallel(
             pipeAsync: static (_, _) => Task.FromResult<Unit>(default),

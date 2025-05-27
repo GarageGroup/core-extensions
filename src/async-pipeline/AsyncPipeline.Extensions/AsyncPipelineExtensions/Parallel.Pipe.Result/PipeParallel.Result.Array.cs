@@ -29,6 +29,12 @@ partial class AsyncPipelineExtensions
 
         async ValueTask<Result<FlatArray<TOut>, TFailure>> InnerPipeCatchingAsync(FlatArray<TIn> input, CancellationToken cancellationToken)
         {
+            if (input.Length < 2)
+            {
+                var results = await InnerPipeAsync(input, cancellationToken).ConfigureAwait(continueOnCapturedContext);
+                return InnerJoinSuccess<TIn, TOut, TFailure>(results);
+            }
+
             try
             {
                 return await input.InnerPipeParallelAsync(

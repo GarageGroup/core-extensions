@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Xunit;
 
 namespace GarageGroup.Core.Collections.Test;
@@ -53,4 +52,16 @@ public static partial class AsyncPipelineExtensionsTest
                 }
             }
         };
+
+    public static TheoryData<PipelineParallelOption?, int> PipelineParallelOptionTestDataWithCount(int count)
+    {
+        var data = new TheoryData<PipelineParallelOption?, int>();
+
+        foreach (var option in PipelineParallelOptionTestData)
+        {
+            data.Add(option, count);
+        }
+
+        return data;
+    }
 }

@@ -33,10 +33,15 @@ partial class AsyncPipelineExtensions
             return default;
         }
 
-        var options = pipelineConfiguration.InnerCreateParallelOptions(option?.DegreeOfParallelism, cancellationToken);
         var continueOnCapturedContext = pipelineConfiguration.ContinueOnCapturedContext;
+        if (input.Length is 1)
+        {
+            return await pipeAsync.Invoke(input[0], cancellationToken).ConfigureAwait(continueOnCapturedContext);
+        }
 
+        var options = pipelineConfiguration.InnerCreateParallelOptions(option?.DegreeOfParallelism, cancellationToken);
         await Parallel.ForEachAsync(input.AsEnumerable(), options, InnerInvokeAsync).ConfigureAwait(continueOnCapturedContext);
+
         return default;
 
         async ValueTask InnerInvokeAsync(TIn @in, CancellationToken cancellationToken)
