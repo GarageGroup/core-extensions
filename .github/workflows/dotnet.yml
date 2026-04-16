@@ -10,14 +10,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6.0.2
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5.2.0
       with:
-        dotnet-version: '9.0.x' 
+        dotnet-version: '10.0.x'
 
-     # Add NuGet Sources
+    # Add NuGet Sources
 
     - name: Create Local NuGet Directory
       run: mkdir ~/nuget
@@ -29,7 +29,7 @@ jobs:
       run: >
         dotnet nuget add source ${{ vars.GG_NUGET_SOURCE_URL }}
         -n garage
-        -u ${{ secrets.GG_NUGET_SOURCE_USER_NAME }}
+        -u ${{ vars.GG_NUGET_SOURCE_USER_NAME }}
         -p ${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}
         --store-password-in-clear-text
 

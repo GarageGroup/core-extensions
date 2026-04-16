@@ -5,53 +5,50 @@ namespace GarageGroup.Core.Collections.Test;
 public static partial class AsyncPipelineExtensionsTest
 {
     public static TheoryData<PipelineParallelOption?> PipelineParallelOptionTestData
-        =>
-        new()
+    {
+        get
         {
-            {
-                null
-            },
-            {
-                new()
+            var data = new TheoryData<PipelineParallelOption?>();
+
+            data.Add((PipelineParallelOption?)null);
+            data.Add(
+                (PipelineParallelOption?)new PipelineParallelOption
                 {
                     DegreeOfParallelism = null,
                     FailureAction = PipelineParallelFailureAction.Stop
-                }
-            },
-            {
-                new()
+                });
+            data.Add(
+                (PipelineParallelOption?)new PipelineParallelOption
                 {
                     DegreeOfParallelism = -1,
                     FailureAction = PipelineParallelFailureAction.Default
-                }
-            },
-            {
-                new()
+                });
+            data.Add(
+                (PipelineParallelOption?)new PipelineParallelOption
                 {
                     DegreeOfParallelism = 0
-                }
-            },
-            {
-                new()
+                });
+            data.Add(
+                (PipelineParallelOption?)new PipelineParallelOption
                 {
                     DegreeOfParallelism = 1
-                }
-            },
-            {
-                new()
+                });
+            data.Add(
+                (PipelineParallelOption?)new PipelineParallelOption
                 {
                     DegreeOfParallelism = 5,
                     FailureAction = PipelineParallelFailureAction.Default
-                }
-            },
-            {
-                new()
+                });
+            data.Add(
+                (PipelineParallelOption?)new PipelineParallelOption
                 {
                     DegreeOfParallelism = 5,
                     FailureAction = PipelineParallelFailureAction.Stop
-                }
-            }
-        };
+                });
+
+            return data;
+        }
+    }
 
     public static TheoryData<PipelineParallelOption?, int> PipelineParallelOptionTestDataWithCount(int count)
     {
