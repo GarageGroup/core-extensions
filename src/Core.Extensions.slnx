@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/async-pipeline/">
+    <Project Path="async-pipeline/AsyncPipeline.Extensions.Test/AsyncPipeline.Extensions.Test.csproj" />
+    <Project Path="async-pipeline/AsyncPipeline.Extensions/AsyncPipeline.Extensions.csproj" />
+  </Folder>
+  <Folder Name="/flat-array/">
+    <Project Path="flat-array/FlatArray.Extensions.Test/FlatArray.Extensions.Test.csproj" />
+    <Project Path="flat-array/FlatArray.Extensions/FlatArray.Extensions.csproj" />
+  </Folder>
+  <Folder Name="/string/">
+    <Project Path="string/String.Extensions.Test/String.Extensions.Test.csproj" />
+    <Project Path="string/String.Extensions/String.Extensions.csproj" />
+  </Folder>
+</Solution>

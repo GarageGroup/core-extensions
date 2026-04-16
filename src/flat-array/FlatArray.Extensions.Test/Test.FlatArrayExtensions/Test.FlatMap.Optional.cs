@@ -14,7 +14,9 @@ partial class FlatArrayExtensionsTest
     [InlineData(false)]
     public static void FlatMapWithOptional_MapArgumentIsNull_ExpectArgumentNullException(bool isSourceDefault)
     {
-        var source = isSourceDefault ? default : new FlatArray<RecordType>(MinusFifteenIdSomeStringNameRecord, PlusFifteenIdSomeStringNameRecord);
+        var source = isSourceDefault ? default : new FlatArray<RecordType>(
+            MinusFifteenIdSomeStringNameRecord, PlusFifteenIdSomeStringNameRecord);
+
         Func<RecordType, Optional<DateOnly?>> map = null!;
 
         var ex = Assert.Throws<ArgumentNullException>(Test);
