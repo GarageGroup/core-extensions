@@ -50,7 +50,7 @@ jobs:
       run: dotnet restore ./src/*/*/AsyncPipeline.Extensions.Test.csproj
 
     - name: Test AsyncPipeline.Extensions.Test
-      run: dotnet test ./src/*/*/AsyncPipeline.Extensions.Test.csproj --no-restore  -c Release
+      run: dotnet test ./src/*/*/AsyncPipeline.Extensions.Test.csproj --no-restore -c Release -p:TestTfmsInParallel=false
 
     # String.Extensions
 
@@ -69,7 +69,7 @@ jobs:
       run: dotnet restore ./src/*/*/String.Extensions.Test.csproj
 
     - name: Test String.Extensions.Test
-      run: dotnet test ./src/*/*/String.Extensions.Test.csproj --no-restore  -c Release
+      run: dotnet test ./src/*/*/String.Extensions.Test.csproj --no-restore -c Release -p:TestTfmsInParallel=false
 
     # FlatArray.Extensions
 
@@ -88,7 +88,7 @@ jobs:
       run: dotnet restore ./src/*/*/FlatArray.Extensions.Test.csproj
 
     - name: Test FlatArray.Extensions.Test
-      run: dotnet test ./src/*/*/FlatArray.Extensions.Test.csproj --no-restore  -c Release
+      run: dotnet test ./src/*/*/FlatArray.Extensions.Test.csproj --no-restore -c Release -p:TestTfmsInParallel=false
 
     # Push
 
