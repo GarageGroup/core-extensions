@@ -1,0 +1,79 @@
+name: Experimental NuGet Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_id:
+        description: 'NuGet package ID to sync (example: GarageGroup.Core.AsyncPipeline.Extensions)'
+        required: true
+        type: string
+      package_version:
+        description: 'NuGet package version to sync (example: 1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sync-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.2.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Add Garage NuGet Source
+        run: >
+          dotnet nuget add source ${{ vars.GG_NUGET_SOURCE_URL }}
+          -n garage
+          -u ${{ vars.GG_NUGET_SOURCE_USER_NAME }}
+          -p ${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}
+          --store-password-in-clear-text
+
+      - name: Download package from Garage feed
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PACKAGE_ID='${{ inputs.package_id }}'
+          PACKAGE_VERSION='${{ inputs.package_version }}'
+
+          PACKAGE_ID_LOWER="$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')"
+          PACKAGE_VERSION_LOWER="$(echo "$PACKAGE_VERSION" | tr '[:upper:]' '[:lower:]')"
+
+          INDEX_JSON="$(mktemp)"
+          curl -fsSL \
+            -u '${{ vars.GG_NUGET_SOURCE_USER_NAME }}:${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}' \
+            '${{ vars.GG_NUGET_SOURCE_URL }}' \
+            -o "$INDEX_JSON"
+
+          PACKAGE_BASE_URL="$(jq -r '.resources[] | select((."@type" | tostring) | startswith("PackageBaseAddress/")) | ."@id"' "$INDEX_JSON" | head -n 1)"
+
+          if [ -z "$PACKAGE_BASE_URL" ] || [ "$PACKAGE_BASE_URL" = "null" ]; then
+            echo 'PackageBaseAddress endpoint not found in source index.'
+            exit 1
+          fi
+
+          PACKAGE_URL="${PACKAGE_BASE_URL%/}/${PACKAGE_ID_LOWER}/${PACKAGE_VERSION_LOWER}/${PACKAGE_ID_LOWER}.${PACKAGE_VERSION_LOWER}.nupkg"
+          OUTPUT_FILE="${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg"
+
+          echo "Downloading: $PACKAGE_URL"
+          curl -fsSL \
+            -u '${{ vars.GG_NUGET_SOURCE_USER_NAME }}:${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}' \
+            "$PACKAGE_URL" \
+            -o "$OUTPUT_FILE"
+
+          ls -la "$OUTPUT_FILE"
+
+      - name: Push package to nuget.org
+        run: >
+          dotnet nuget push "./${{ inputs.package_id }}.${{ inputs.package_version }}.nupkg"
+          -s https://api.nuget.org/v3/index.json
+          -k ${{ secrets.NUGET_SECRET }}
+          --skip-duplicate
