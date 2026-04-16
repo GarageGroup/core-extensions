@@ -36,16 +36,15 @@ jobs:
           -p ${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}
           --store-password-in-clear-text
 
-      - name: Download package from Garage feed
+      - name: Resolve and download package graph from Garage feed
         shell: bash
         run: |
           set -euo pipefail
 
           PACKAGE_ID='${{ inputs.package_id }}'
           PACKAGE_VERSION='${{ inputs.package_version }}'
-
-          PACKAGE_ID_LOWER="$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')"
-          PACKAGE_VERSION_LOWER="$(echo "$PACKAGE_VERSION" | tr '[:upper:]' '[:lower:]')"
+          PACKAGES_TO_PUSH_FILE="packages-to-push.txt"
+          : > "$PACKAGES_TO_PUSH_FILE"
 
           INDEX_JSON="$(mktemp)"
           curl -fsSL \
@@ -60,20 +59,68 @@ jobs:
             exit 1
           fi
 
-          PACKAGE_URL="${PACKAGE_BASE_URL%/}/${PACKAGE_ID_LOWER}/${PACKAGE_VERSION_LOWER}/${PACKAGE_ID_LOWER}.${PACKAGE_VERSION_LOWER}.nupkg"
-          OUTPUT_FILE="${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg"
+          TEMP_DIR="$(mktemp -d)"
+          pushd "$TEMP_DIR" >/dev/null
 
-          echo "Downloading: $PACKAGE_URL"
-          curl -fsSL \
-            -u '${{ vars.GG_NUGET_SOURCE_USER_NAME }}:${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}' \
-            "$PACKAGE_URL" \
-            -o "$OUTPUT_FILE"
+          dotnet new classlib --name SyncProbe --framework net10.0 --force >/dev/null
+          cd SyncProbe
 
-          ls -la "$OUTPUT_FILE"
+          dotnet add package "$PACKAGE_ID" \
+            --version "$PACKAGE_VERSION" \
+            --source "${{ vars.GG_NUGET_SOURCE_URL }}" \
+            --no-restore
 
-      - name: Push package to nuget.org
-        run: >
-          dotnet nuget push "./${{ inputs.package_id }}.${{ inputs.package_version }}.nupkg"
-          -s https://api.nuget.org/v3/index.json
-          -k ${{ secrets.NUGET_SECRET }}
-          --skip-duplicate
+          dotnet restore --force-evaluate --verbosity minimal >/dev/null
+
+          jq -r '
+            .libraries
+            | keys[]
+            | capture("(?<id>.+)/(?<version>.+)")
+            | select(.id | startswith("GarageGroup."))
+            | "\(.id)\t\(.version)"
+          ' obj/project.assets.json | sort -u > garage-packages.tsv
+
+          if [ ! -s garage-packages.tsv ]; then
+            echo "No GarageGroup.* packages found in dependency graph."
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r DEP_ID DEP_VERSION; do
+            DEP_ID_LOWER="$(echo "$DEP_ID" | tr '[:upper:]' '[:lower:]')"
+            DEP_VERSION_LOWER="$(echo "$DEP_VERSION" | tr '[:upper:]' '[:lower:]')"
+            OUTPUT_FILE="${DEP_ID}.${DEP_VERSION}.nupkg"
+            PACKAGE_URL="${PACKAGE_BASE_URL%/}/${DEP_ID_LOWER}/${DEP_VERSION_LOWER}/${DEP_ID_LOWER}.${DEP_VERSION_LOWER}.nupkg"
+
+            echo "Downloading: $DEP_ID $DEP_VERSION"
+            curl -fsSL \
+              -u '${{ vars.GG_NUGET_SOURCE_USER_NAME }}:${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}' \
+              "$PACKAGE_URL" \
+              -o "$GITHUB_WORKSPACE/$OUTPUT_FILE"
+
+            echo "${DEP_ID}|${DEP_VERSION}|${OUTPUT_FILE}" >> "$GITHUB_WORKSPACE/$PACKAGES_TO_PUSH_FILE"
+          done < garage-packages.tsv
+
+          popd >/dev/null
+
+          echo "Packages prepared for push:"
+          cat "$PACKAGES_TO_PUSH_FILE"
+
+      - name: Push GarageGroup packages to nuget.org
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PACKAGES_TO_PUSH_FILE="packages-to-push.txt"
+
+          if [ ! -f "$PACKAGES_TO_PUSH_FILE" ] || [ ! -s "$PACKAGES_TO_PUSH_FILE" ]; then
+            echo "No packages to push."
+            exit 0
+          fi
+
+          while IFS='|' read -r DEP_ID DEP_VERSION FILE_NAME; do
+            echo "Pushing: $DEP_ID $DEP_VERSION"
+            dotnet nuget push "./$FILE_NAME" \
+              -s https://api.nuget.org/v3/index.json \
+              -k '${{ secrets.NUGET_SECRET }}' \
+              --skip-duplicate
+          done < "$PACKAGES_TO_PUSH_FILE"
