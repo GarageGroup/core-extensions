@@ -96,6 +96,6 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' }}
       run: >
         dotnet nuget push "../../../nuget/*.nupkg"
-        -s ${{ vars.GG_NUGET_SOURCE_URL }}
-        -k ${{ secrets.GG_NUGET_SOURCE_USER_PASSWORD }}
+        -s https://api.nuget.org/v3/index.json
+        -k ${{ secrets.NUGET_SECRET }}
         --skip-duplicate
